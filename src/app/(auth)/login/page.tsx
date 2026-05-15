@@ -23,7 +23,7 @@ function LoginContent() {
     }
   }, [prefilledEmail]);
 
-const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -39,8 +39,8 @@ const handleSubmit = async (e: React.FormEvent) => {
         setError("Invalid email or password");
         setLoading(false); // ভুল হলে লোডিং থামিয়ে এরর দেখাবে
       } else {
-        // সফল হলে নতুন কুকি নিয়ে সোজা প্রোফাইলে যাবে
-        window.location.href = "/profile";
+        // 🔥 সফল হলে সোজা হোম পেজে যাবে
+        window.location.href = "/";
       }
     } catch (err) {
       setError("Something went wrong! Please try again.");
@@ -49,7 +49,8 @@ const handleSubmit = async (e: React.FormEvent) => {
   };
   
   const handleGoogleLogin = () => {
-    signIn("google", { callbackUrl: "/profile" });
+    // 🔥 গুগল লগইন সফল হলেও হোম পেজে যাবে
+    signIn("google", { callbackUrl: "/" });
   };
 
   return (
