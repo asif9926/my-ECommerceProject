@@ -32,24 +32,22 @@ const handleSubmit = async (e: React.FormEvent) => {
       const res = await signIn("credentials", {
         email,
         password,
-        redirect: false, 
+        redirect: false,
       });
 
       if (res?.error) {
         setError("Invalid email or password");
-        setLoading(false);
-      } else if (res?.ok) {
-        // লগইন সাকসেস হলে প্রোফাইলে যাবে এবং সেশন রিফ্রেশ করবে
-        router.push("/profile");
-        router.refresh(); 
+        setLoading(false); // ভুল হলে লোডিং থামিয়ে এরর দেখাবে
+      } else {
+        // সফল হলে নতুন কুকি নিয়ে সোজা প্রোফাইলে যাবে
+        window.location.href = "/profile";
       }
     } catch (err) {
       setError("Something went wrong! Please try again.");
-      setLoading(false);
+      setLoading(false); // সার্ভারে সমস্যা হলেও লোডিং থামিয়ে এরর দেখাবে
     }
   };
-
-
+  
   const handleGoogleLogin = () => {
     signIn("google", { callbackUrl: "/profile" });
   };
