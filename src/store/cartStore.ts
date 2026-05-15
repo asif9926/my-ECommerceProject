@@ -9,15 +9,15 @@ export interface CartItem {
   discountPrice?: number;
   image: string;
   size?: string;
-  color?: string;
+  variant?: string; // 🔥 color এর বদলে variant করা হলো
   quantity: number;
 }
 
 interface CartStore {
   items: CartItem[];
   addItem: (item: CartItem) => void;
-  removeItem: (id: string, size?: string, color?: string) => void;
-  updateQuantity: (id: string, quantity: number, size?: string, color?: string) => void;
+  removeItem: (id: string, size?: string, variant?: string) => void; // color -> variant
+  updateQuantity: (id: string, quantity: number, size?: string, variant?: string) => void; // color -> variant
   clearCart: () => void;
   getTotalItems: () => number;
   getTotalPrice: () => number;
@@ -35,11 +35,11 @@ export const useCartStore = create<CartStore>()(
             (i) => 
               i._id === item._id && 
               (i.size || "Default") === (item.size || "Default") && 
-              (i.color || "Default") === (item.color || "Default")
+              (i.variant || "Default") === (item.variant || "Default") // 🔥 variant চেক
           );
 
           if (existingItemIndex > -1) {
-            // আইটেম, সাইজ এবং কালার মিলে গেলে শুধু কোয়ান্টিটি বাড়বে
+            // আইটেম, সাইজ এবং ভ্যারিয়েন্ট মিলে গেলে শুধু কোয়ান্টিটি বাড়বে
             const updatedItems = [...state.items];
             updatedItems[existingItemIndex].quantity += item.quantity;
             return { items: updatedItems };
@@ -50,25 +50,25 @@ export const useCartStore = create<CartStore>()(
       },
 
       // 🔥 FIX 2: রিমুভ করার স্মার্ট লজিক
-      removeItem: (id, size, color) => {
+      removeItem: (id, size, variant) => { // 🔥 color -> variant
         set((state) => ({
           items: state.items.filter(
             (i) => !(
               i._id === id && 
               (i.size || "Default") === (size || "Default") && 
-              (i.color || "Default") === (color || "Default")
+              (i.variant || "Default") === (variant || "Default") // 🔥 variant চেক
             )
           ),
         }));
       },
 
       // 🔥 FIX 3: কোয়ান্টিটি আপডেট করার লজিক
-      updateQuantity: (id, quantity, size, color) => {
+      updateQuantity: (id, quantity, size, variant) => { // 🔥 color -> variant
         set((state) => ({
           items: state.items.map((i) =>
             i._id === id && 
             (i.size || "Default") === (size || "Default") && 
-            (i.color || "Default") === (color || "Default")
+            (i.variant || "Default") === (variant || "Default") // 🔥 variant চেক
               ? { ...i, quantity: Math.max(1, quantity) }
               : i
           ),
@@ -89,7 +89,7 @@ export const useCartStore = create<CartStore>()(
       },
     }),
     {
-      name: 'twille-cart-storage', // 🔥 FIX 4: নাম পরিবর্তন করে Twille এর নামে রাখা হলো
+      name: 'twille-cart-storage', 
     }
   )
 );
