@@ -60,14 +60,15 @@ export default function CartPage() {
               {items.map((item) => (
                 <div key={`${item._id}-${item.size}-${item.color}`} className="flex flex-col sm:flex-row items-start sm:items-center py-6 border-b border-gray-200 gap-6">
                   
-                  {/* Product Image */}
-                  <Link href={`/product/${item.slug}`} className="w-24 h-32 shrink-0 bg-gray-100 rounded-sm overflow-hidden block">
+                  {/* Product Image (🔥 Route theek kora hoyese: /products/... ) */}
+                  <Link href={`/products/${item.slug}`} className="w-24 h-32 shrink-0 bg-gray-100 rounded-sm overflow-hidden block">
                     <img src={item.image} alt={item.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
                   </Link>
 
                   {/* Product Details */}
                   <div className="flex-grow">
-                    <Link href={`/product/${item.slug}`}>
+                    {/* (🔥 Route theek kora hoyese: /products/... ) */}
+                    <Link href={`/products/${item.slug}`}>
                       <h3 className="font-semibold text-gray-900 hover:text-[#d4a843] transition-colors text-lg mb-1">{item.name}</h3>
                     </Link>
                     <div className="text-sm text-gray-500 mb-3 space-y-1">
@@ -82,11 +83,14 @@ export default function CartPage() {
                   {/* Quantity & Delete */}
                   <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
                     <div className="flex items-center border border-gray-300 rounded-sm">
+                      {/* (🔥 Quantity minus bug theek kora hoyese) */}
                       <button 
-                        onClick={() => updateQuantity(item._id, item.quantity - 1, item.size, item.color)}
+                        onClick={() => updateQuantity(item._id, Math.max(1, item.quantity - 1), item.size, item.color)}
                         className="px-3 py-1.5 text-gray-500 hover:text-black transition-colors"
                       ><Minus size={14} /></button>
+                      
                       <span className="w-10 text-center font-medium text-sm text-gray-900">{item.quantity}</span>
+                      
                       <button 
                         onClick={() => updateQuantity(item._id, item.quantity + 1, item.size, item.color)}
                         className="px-3 py-1.5 text-gray-500 hover:text-black transition-colors"

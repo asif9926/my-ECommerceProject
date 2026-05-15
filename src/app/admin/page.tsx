@@ -1,127 +1,112 @@
-import connectDB from "@/lib/db";
-import Order from "@/models/Order";
-import { DollarSign, ShoppingBag, Users, TrendingUp, Eye } from "lucide-react";
+"use client";
+
+import { useState, useEffect } from "react";
+import { DollarSign, ShoppingBag, Package, Users, Eye, Wallet, Clock, ArrowRight } from "lucide-react";
 import Link from "next/link";
 
-// এটি একটি Server Component, তাই সরাসরি async ব্যবহার করা যাচ্ছে
-export default async function AdminDashboard() {
-  await connectDB();
+export default function AdminDashboard() {
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // ১. ডাটাবেস থেকে মোট অর্ডারের সংখ্যা আনা
-  const totalOrders = await Order.countDocuments();
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const res = await fetch(`/api/admin/stats?t=${new Date().getTime()}`);
+        const data = await res.json();
+        if (data.success) setStats(data.stats);
+      } catch (err) {
+        console.error("Dashboard error:", err);
+      } finally { setLoading(false); }
+    };
+    fetchStats();
+  }, []);
 
-  // ২. মোট আয় (Revenue) হিসাব করা
-  const revenueData = await Order.aggregate([
-    { $group: { _id: null, total: { $sum: "$totalPrice" } } }
-  ]);
-  const totalRevenue = revenueData[0]?.total || 0;
+  if (loading) return <div className="p-10 text-center font-['Syne'] text-gray-500">Syncing Dashboard...</div>;
 
-  // ৩. মোট ইউনিক কাস্টমার হিসাব করা (ইমেইল দিয়ে)
-  const uniqueCustomers = await Order.distinct("shippingInfo.email");
-  const totalCustomers = uniqueCustomers.length;
-
-  // ৪. একদম নতুন ৫টি অর্ডার লিস্ট আনা
-  const recentOrders = await Order.find().sort({ createdAt: -1 }).limit(5);
+  const cards = [
+    { title: "Total Revenue", value: `৳${stats?.totalRevenue || 0}`, icon: DollarSign, trend: "Gross", color: "text-[#d4a843]" },
+    { title: "Received Payment", value: `৳${stats?.receivedPayment || 0}`, icon: Wallet, trend: "Paid", color: "text-emerald-600" },
+    { title: "Total Orders", value: stats?.totalOrders || 0, icon: ShoppingBag, trend: "Orders", color: "text-blue-600" },
+    { title: "Total Products", value: stats?.totalProducts || 0, icon: Package, trend: "Live", color: "text-indigo-600" },
+    { title: "Today Visitors", value: stats?.todayVisitors || 0, icon: Eye, trend: "Daily", color: "text-purple-600" },
+    { title: "Total Visitors", value: stats?.totalVisitors || 0, icon: Users, trend: "All Time", color: "text-orange-600" },
+  ];
 
   return (
-    <div>
-      <h1 className="text-3xl font-bold text-gray-900 mb-8 font-['Syne']">Dashboard Overview</h1>
+    <div className="p-6 md:p-10 max-w-7xl mx-auto space-y-10 bg-[#fafafa] min-h-screen">
       
-      {/* ── STATS CARDS ── */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
-        <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-            <DollarSign size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 font-medium">Total Revenue</p>
-            <h3 className="text-2xl font-bold text-gray-900">৳{totalRevenue.toLocaleString()}</h3>
-          </div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-black text-gray-900 font-['Syne'] tracking-tight">DASHBOARD OVERVIEW</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage your premium clothing brand performance.</p>
         </div>
-        
-        <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600">
-            <ShoppingBag size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 font-medium">Total Orders</p>
-            <h3 className="text-2xl font-bold text-gray-900">{totalOrders}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center text-purple-600">
-            <Users size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 font-medium">Total Customers</p>
-            <h3 className="text-2xl font-bold text-gray-900">{totalCustomers}</h3>
-          </div>
-        </div>
-
-        <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm flex items-center gap-4">
-          <div className="w-12 h-12 rounded-full bg-[#d4a843]/20 flex items-center justify-center text-[#b58e35]">
-            <TrendingUp size={24} />
-          </div>
-          <div>
-            <p className="text-sm text-gray-500 font-medium">Conversion Rate</p>
-            <h3 className="text-2xl font-bold text-gray-900">3.2%</h3>
-          </div>
-        </div>
+        <Link href="/admin/products/new" className="bg-black text-white px-6 py-3 rounded-sm text-xs font-bold tracking-widest hover:bg-gray-800 transition-all text-center">
+          ADD NEW PRODUCT
+        </Link>
       </div>
 
-      {/* ── RECENT ORDERS TABLE ── */}
-      <div className="bg-white border border-gray-200 rounded-sm shadow-sm overflow-hidden">
-        <div className="p-6 border-b border-gray-200 flex justify-between items-center">
-          <h2 className="text-lg font-bold text-gray-900">Recent Orders</h2>
-          <Link href="/admin/orders" className="text-sm text-[#d4a843] hover:underline font-medium">
-            View All
+      {/* ── STATS CARDS ── */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {cards.map((card, i) => (
+          <div key={i} className="bg-white p-7 rounded-sm border border-gray-200 shadow-sm hover:shadow-md transition-all group">
+            <div className="flex justify-between items-start mb-5">
+              <div className="w-12 h-12 rounded-sm bg-gray-50 border border-gray-100 flex items-center justify-center text-gray-500 group-hover:scale-110 transition-transform">
+                <card.icon size={24} className={card.color} />
+              </div>
+              <span className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] bg-gray-50 px-2 py-1 rounded-sm">{card.trend}</span>
+            </div>
+            <div>
+              <p className="text-gray-500 text-xs font-bold uppercase tracking-widest">{card.title}</p>
+              <p className="text-3xl font-black text-gray-900 mt-2 font-mono">{card.value}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── EXPANDED RECENT ORDERS ── */}
+      <div className="bg-white rounded-sm border border-gray-200 shadow-sm overflow-hidden">
+        <div className="px-8 py-6 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
+          <div>
+            <h2 className="text-xl font-black text-gray-900 font-['Syne'] tracking-tight">RECENT TRANSACTIONS</h2>
+            <p className="text-xs text-gray-500 mt-1">Real-time order tracking and statuses</p>
+          </div>
+          <Link href="/admin/orders" className="text-[11px] font-black text-black hover:text-[#d4a843] flex items-center gap-2 transition-colors uppercase tracking-widest">
+            View All Orders <ArrowRight size={14} />
           </Link>
         </div>
         
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-gray-50 text-gray-500 text-sm border-b border-gray-200">
-                <th className="px-6 py-4 font-medium">Order ID</th>
-                <th className="px-6 py-4 font-medium">Customer</th>
-                <th className="px-6 py-4 font-medium">Date</th>
-                <th className="px-6 py-4 font-medium">Total</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-right">Action</th>
+              <tr className="text-gray-400 uppercase text-[10px] font-black tracking-[0.2em] border-b border-gray-100">
+                <th className="px-8 py-5">Order ID</th>
+                <th className="px-8 py-5">Customer</th>
+                <th className="px-8 py-5">Date & Time</th>
+                <th className="px-8 py-5">Amount</th>
+                <th className="px-8 py-5 text-right">Status</th>
               </tr>
             </thead>
-            <tbody className="text-sm text-gray-700">
-              {recentOrders.length === 0 ? (
+            <tbody className="divide-y divide-gray-50">
+              {stats?.recentOrders?.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-8 text-center text-gray-500">
-                    No orders found.
-                  </td>
+                  <td colSpan={5} className="px-8 py-12 text-center text-gray-400 text-sm font-medium italic">No recent orders to display.</td>
                 </tr>
               ) : (
-                recentOrders.map((order) => (
-                  <tr key={order._id.toString()} className="border-b border-gray-100 hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 font-medium">#{order._id.toString().slice(-6).toUpperCase()}</td>
-                    <td className="px-6 py-4">
-                      {order.shippingInfo.firstName} {order.shippingInfo.lastName}
-                      <br />
-                      <span className="text-xs text-gray-500">{order.shippingInfo.phone}</span>
+                stats?.recentOrders?.map((order: any, i: number) => (
+                  <tr key={i} className="hover:bg-gray-50/80 transition-colors group">
+                    <td className="px-8 py-6 text-xs font-bold text-gray-900 font-mono tracking-tight">{order.id}</td>
+                    <td className="px-8 py-6">
+                      <p className="text-sm font-bold text-gray-900 uppercase tracking-wide">{order.customer}</p>
                     </td>
-                    <td className="px-6 py-4">{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td className="px-6 py-4 font-semibold">৳{order.totalPrice}</td>
-                    <td className="px-6 py-4">
-                      <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                        order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                        order.status === 'Delivered' ? 'bg-green-100 text-green-700' :
-                        'bg-blue-100 text-blue-700'
+                    <td className="px-8 py-6 text-xs text-gray-500 font-medium uppercase">{order.date}</td>
+                    <td className="px-8 py-6 text-base font-black text-gray-900 font-mono">{order.amount}</td>
+                    <td className="px-8 py-6 text-right">
+                      <span className={`inline-block px-3 py-1 rounded-sm text-[9px] font-black uppercase tracking-widest border ${
+                        order.status === 'Verified' ? 'text-emerald-600 bg-emerald-50 border-emerald-100' : 
+                        'text-gray-400 bg-gray-50 border-gray-200'
                       }`}>
                         {order.status}
                       </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button className="p-2 text-gray-400 hover:text-[#d4a843] transition-colors" title="View Details">
-                        <Eye size={18} />
-                      </button>
                     </td>
                   </tr>
                 ))

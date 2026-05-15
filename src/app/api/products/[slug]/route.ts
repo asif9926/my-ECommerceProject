@@ -1,26 +1,89 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Product from "@/models/Product";
-import Category from "@/models/Category"; 
+import mongoose from "mongoose";
 
-export async function GET(req: Request, context: { params: Promise<{ slug: string }> | { slug: string } }) {
+// ১. GET - প্রোডাক্ট আনা
+export async function GET(req: Request, { params }: { params: Promise<{ slug: string }> }) {
   try {
     await connectDB();
+    const { slug } = await params;
+
+    let product;
+    if (mongoose.Types.ObjectId.isValid(slug)) {
+      product = await Product.findById(slug).populate("category");
+    } else {
+      product = await Product.findOne({ slug: slug }).populate("category");
+    }
+
+    if (!product) {
+      return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
+    }
+    return NextResponse.json({ success: true, product });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: "Server error" }, { status: 500 });
+  }
+}
+
+// ২. PATCH - প্রোডাক্ট আপডেট করা
+export async function PATCH(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  try {
+    await connectDB();
+    const { slug } = await params;
+    const body = await req.json();
     
-    const params = await context.params;
-    const slug = params.slug;
-    
-    // এখানেও Populate-এর ভেতরে model: Category দেওয়া হলো
-    const product = await Product.findOne({ slug })
-      .populate({ path: "category", model: Category, select: "name" });
-    
+    const { 
+      name, description, price, discountPrice, 
+      category, subCategory, images, sizes, isFeatured 
+    } = body;
+
+    // 🔥 FIXED: sizes আপডেট হলে টোটাল স্টক আবার হিসাব করা হচ্ছে
+    let totalStock = 0;
+    if (sizes && sizes.length > 0) {
+      totalStock = sizes.reduce((acc: number, curr: any) => acc + Number(curr.stock), 0);
+    }
+
+    // 🔥 FIXED: id এবং slug দুইভাবেই আপডেট কাজ করবে
+    const query = mongoose.Types.ObjectId.isValid(slug) ? { _id: slug } : { slug: slug };
+
+    const product = await Product.findOneAndUpdate(
+      query,
+      { 
+        name, description, price, discountPrice, 
+        category, subCategory, images, sizes, 
+        countInStock: totalStock, // Updated Stock
+        isFeatured 
+      },
+      { new: true, runValidators: true }
+    );
+
     if (!product) {
       return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
     }
 
     return NextResponse.json({ success: true, product });
-  } catch (error) {
-    console.error("Error fetching single product:", error);
-    return NextResponse.json({ success: false, error: "Failed to fetch product details" }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
+// ৩. DELETE - প্রোডাক্ট ডিলিট করা
+export async function DELETE(req: Request, { params }: { params: Promise<{ slug: string }> }) {
+  try {
+    await connectDB();
+    const { slug } = await params;
+    
+    // 🔥 FIXED: id এবং slug দুইভাবেই ডিলিট কাজ করবে
+    const query = mongoose.Types.ObjectId.isValid(slug) ? { _id: slug } : { slug: slug };
+    
+    const product = await Product.findOneAndDelete(query);
+    
+    if (!product) {
+      return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
+    }
+    
+    return NextResponse.json({ success: true, message: "Product deleted" });
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

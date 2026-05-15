@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
-// কার্টের আইটেমের টাইপ ডিফাইন করা
 export interface CartItem {
   _id: string;
   name: string;
@@ -29,54 +28,59 @@ export const useCartStore = create<CartStore>()(
     (set, get) => ({
       items: [],
 
-      // কার্টে নতুন আইটেম যুক্ত করা
+      // 🔥 FIX 1: কার্টে নতুন আইটেম যুক্ত করার স্মার্ট লজিক
       addItem: (item) => {
         set((state) => {
-          // চেক করা হচ্ছে একই প্রোডাক্ট (একই সাইজ ও কালার সহ) আগে থেকেই কার্টে আছে কি না
           const existingItemIndex = state.items.findIndex(
-            (i) => i._id === item._id && i.size === item.size && i.color === item.color
+            (i) => 
+              i._id === item._id && 
+              (i.size || "Default") === (item.size || "Default") && 
+              (i.color || "Default") === (item.color || "Default")
           );
 
           if (existingItemIndex > -1) {
-            // যদি থাকে, শুধু কোয়ান্টিটি বাড়িয়ে দাও
+            // আইটেম, সাইজ এবং কালার মিলে গেলে শুধু কোয়ান্টিটি বাড়বে
             const updatedItems = [...state.items];
             updatedItems[existingItemIndex].quantity += item.quantity;
             return { items: updatedItems };
           }
-          // না থাকলে নতুন করে যুক্ত করো
+          // না মিললে নতুন করে যুক্ত হবে
           return { items: [...state.items, item] };
         });
       },
 
-      // কার্ট থেকে আইটেম রিমুভ করা
+      // 🔥 FIX 2: রিমুভ করার স্মার্ট লজিক
       removeItem: (id, size, color) => {
         set((state) => ({
           items: state.items.filter(
-            (i) => !(i._id === id && i.size === size && i.color === color)
+            (i) => !(
+              i._id === id && 
+              (i.size || "Default") === (size || "Default") && 
+              (i.color || "Default") === (color || "Default")
+            )
           ),
         }));
       },
 
-      // কোয়ান্টিটি কমানো বা বাড়ানো
+      // 🔥 FIX 3: কোয়ান্টিটি আপডেট করার লজিক
       updateQuantity: (id, quantity, size, color) => {
         set((state) => ({
           items: state.items.map((i) =>
-            i._id === id && i.size === size && i.color === color
+            i._id === id && 
+            (i.size || "Default") === (size || "Default") && 
+            (i.color || "Default") === (color || "Default")
               ? { ...i, quantity: Math.max(1, quantity) }
               : i
           ),
         }));
       },
 
-      // পুরো কার্ট ক্লিয়ার করা
       clearCart: () => set({ items: [] }),
 
-      // কার্টে মোট কয়টি প্রোডাক্ট আছে তা হিসাব করা
       getTotalItems: () => {
         return get().items.reduce((total, item) => total + item.quantity, 0);
       },
 
-      // কার্টের মোট দাম হিসাব করা
       getTotalPrice: () => {
         return get().items.reduce((total, item) => {
           const itemPrice = item.discountPrice || item.price;
@@ -85,7 +89,7 @@ export const useCartStore = create<CartStore>()(
       },
     }),
     {
-      name: 'bengaltrek-cart', // এই নামে লোকাল স্টোরেজে ডেটা সেভ থাকবে (যাতে পেজ রিলোড দিলে কার্ট খালি না হয়)
+      name: 'twille-cart-storage', // 🔥 FIX 4: নাম পরিবর্তন করে Twille এর নামে রাখা হলো
     }
   )
 );

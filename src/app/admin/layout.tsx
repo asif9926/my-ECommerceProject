@@ -3,6 +3,7 @@
 import { useState } from "react";
 import AdminSidebar from "@/components/admin/Sidebar";
 import { Menu, X } from "lucide-react";
+import Link from "next/link"; // 🔥 Link import kora holo
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -12,9 +13,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       
       {/* Mobile Top Header (শুধুমাত্র মোবাইলে দেখাবে) */}
       <div className="md:hidden fixed top-0 w-full bg-[#141414] text-white z-50 px-4 py-4 flex justify-between items-center shadow-md">
-        <span className="font-['Syne'] font-bold text-xl text-[#e8e8e8]">
-          BRAND<span className="text-[#d4a843]">ADMIN</span>
-        </span>
+        {/* 🔥 ekhane span er bodole Link add kora holo ebong nam TWILLE kora holo */}
+        <Link href="/" className="font-['Syne'] font-bold text-xl tracking-widest text-[#e8e8e8] uppercase">
+          TWILLE<span className="text-[#d4a843]">ADMIN</span>
+        </Link>
         <button onClick={() => setIsMobileOpen(!isMobileOpen)} className="text-[#d4a843]">
           {isMobileOpen ? <X size={26} /> : <Menu size={26} />}
         </button>

@@ -25,12 +25,27 @@ const orderSchema = new mongoose.Schema({
     postalCode: { type: String },
   },
   
-  paymentMethod: { type: String, required: true },
+  // 🔥 UPDATED: Master Plan অনুযায়ী Payment Info
+  paymentInfo: {
+    method: { type: String, enum: ['instant', 'cod'], required: true },
+    mobileNumber: { type: String },   // "01XXXXXXXXX"
+    transactionId: { type: String },  // "TXN123456789"
+    gateway: { type: String, enum: ['bKash', 'Nagad', 'Rocket'] },
+    verifiedAt: { type: Date },
+    verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+    verificationNote: { type: String },
+  },
+  
+  paymentStatus: {
+    type: String,
+    enum: ['unpaid', 'pending_verification', 'verified', 'failed'],
+    default: 'unpaid'
+  },
+  
   itemsPrice: { type: Number, required: true },
   shippingPrice: { type: Number, required: true },
   totalPrice: { type: Number, required: true },
   
-  isPaid: { type: Boolean, default: false },
   isDelivered: { type: Boolean, default: false },
   status: { type: String, default: "Pending" }, // Pending, Processing, Shipped, Delivered
 }, { timestamps: true });

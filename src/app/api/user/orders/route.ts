@@ -1,23 +1,24 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Order from "@/models/Order";
+import { auth } from "@/auth";
 
-export async function POST(req: Request) {
+export async function GET() {
   try {
-    const { email } = await req.json();
-    
-    if (!email) {
-      return NextResponse.json({ success: false, message: "Email is required" }, { status: 400 });
+    await connectDB();
+    const session = await auth();
+
+    if (!session?.user) {
+      return NextResponse.json({ success: false, message: "Unauthorized" }, { status: 401 });
     }
 
-    await connectDB();
-    
-    // ইমেইল দিয়ে ডাটাবেস থেকে ওই নির্দিষ্ট ইউজারের সব অর্ডার খোঁজা হচ্ছে
-    const orders = await Order.find({ "shippingInfo.email": email }).sort({ createdAt: -1 });
+    // শুধুমাত্র এই নির্দিষ্ট ইউজারের অর্ডারগুলো খোঁজা হচ্ছে
+    const orders = await Order.find({ user: (session.user as any).id })
+      .sort({ createdAt: -1 });
 
     return NextResponse.json({ success: true, orders });
   } catch (error) {
-    console.error("Error fetching user orders:", error);
-    return NextResponse.json({ success: false, error: "Failed to fetch orders" }, { status: 500 });
+    console.error("User orders fetch error:", error);
+    return NextResponse.json({ success: false, message: "Failed to fetch your orders" }, { status: 500 });
   }
 }

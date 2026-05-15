@@ -2,26 +2,25 @@ import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Order from "@/models/Order";
 
-export async function PATCH(req: Request, props: { params: Promise<{ id: string }> }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     await connectDB();
-    const body = await req.json();
-    const params = await props.params;
+    const { id } = await params;
+    const { status } = await req.json();
 
-    // ডাটাবেসে অর্ডারের স্ট্যাটাস আপডেট করা হচ্ছে
-    const updatedOrder = await Order.findByIdAndUpdate(
-      params.id,
-      { status: body.status },
-      { new: true }
+    // 🔥 এখানে Warning Fix করা হলো
+    const order = await Order.findByIdAndUpdate(
+      id, 
+      { status }, 
+      { returnDocument: 'after' }
     );
-
-    if (!updatedOrder) {
-      return NextResponse.json({ success: false, message: "Order not found" }, { status: 404 });
+    
+    if (!order) {
+      return NextResponse.json({ success: false, message: "Order not found" });
     }
 
-    return NextResponse.json({ success: true, order: updatedOrder });
+    return NextResponse.json({ success: true, order });
   } catch (error) {
-    console.error("Error updating order:", error);
-    return NextResponse.json({ success: false, error: "Failed to update order" }, { status: 500 });
+    return NextResponse.json({ success: false, message: "Server Error" }, { status: 500 });
   }
 }

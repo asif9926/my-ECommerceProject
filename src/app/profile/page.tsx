@@ -1,10 +1,10 @@
 "use client";
 
-import { useSession } from "next-auth/react";
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import { User, Package, Clock, ShieldCheck } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useSession, signOut } from "next-auth/react";
 import Link from "next/link";
+import { Package, User, LogOut, CheckCircle2, Clock, Truck, Loader2 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
   const { data: session, status } = useSession();
@@ -13,125 +13,157 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // ইউজার লগইন করা না থাকলে লগইন পেজে পাঠিয়ে দেবে
+    // Middleware এমনিতে প্রটেক্ট করবে, তারপরও ক্লায়েন্ট সাইড সেফটি
     if (status === "unauthenticated") {
       router.push("/login");
-    }
-
-    // লগইন করা থাকলে তার ইমেইল দিয়ে অর্ডারগুলো API থেকে আনবে
-    if (status === "authenticated" && session?.user?.email) {
-      fetch("/api/user/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email: session.user.email }),
-      })
+    } else if (status === "authenticated") {
+      fetch("/api/user/orders")
         .then((res) => res.json())
         .then((data) => {
-          if (data.success) {
+          if (data.success && Array.isArray(data.orders)) {
             setOrders(data.orders);
           }
           setLoading(false);
         })
         .catch(() => setLoading(false));
     }
-  }, [status, session, router]);
+  }, [status, router]);
 
-  if (status === "loading" || loading) {
+  if (loading || status === "loading") {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-gray-200 border-t-[#d4a843] rounded-full animate-spin"></div>
+      <div className="min-h-[60vh] flex flex-col items-center justify-center space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-[#d4a843]" />
+        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Loading Profile...</p>
       </div>
     );
   }
 
+  // Safe Total Calculation
+  const totalSpent = orders.reduce((sum, order: any) => sum + (order.totalPrice || 0), 0);
+
+  // Date Formatter
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
+  };
+
   return (
-    <div className="bg-gray-50 min-h-screen py-12">
+    <div className="bg-gray-50 min-h-[calc(100vh-64px)] py-12 font-['Inter']">
       <div className="container mx-auto px-4 md:px-8 max-w-6xl">
+        <div className="mb-8">
+          <h1 className="text-3xl font-black text-gray-900 uppercase tracking-tighter font-['Syne']">My Account</h1>
+          <p className="mt-1 text-xs text-gray-500 uppercase tracking-widest font-bold">Welcome back to your dashboard</p>
+        </div>
         
-        <h1 className="text-3xl font-bold text-gray-900 mb-8 font-['Syne']">My Account</h1>
-
         <div className="flex flex-col md:flex-row gap-8">
-          
-          {/* Left Side: Profile Info */}
-          <div className="md:w-1/3">
-            <div className="bg-white border border-gray-200 rounded-sm p-6 shadow-sm sticky top-24">
-              <div className="flex items-center gap-4 mb-6 pb-6 border-b border-gray-100">
-                <div className="w-16 h-16 bg-[#d4a843]/10 rounded-full flex items-center justify-center text-[#d4a843]">
+          {/* ─── SIDEBAR ─── */}
+          <div className="md:w-1/3 lg:w-1/4">
+            <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm sticky top-24">
+              <div className="w-20 h-20 bg-gray-50 border border-gray-100 rounded-full flex items-center justify-center text-gray-400 mb-4 mx-auto shadow-sm">
+                {session?.user?.image ? (
+                  <img src={session.user.image} alt="Profile" className="w-full h-full rounded-full object-cover" />
+                ) : (
                   <User size={32} />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">{session?.user?.name}</h2>
-                  <p className="text-sm text-gray-500">{session?.user?.email}</p>
-                </div>
+                )}
               </div>
+              <h2 className="text-lg font-bold text-center text-gray-900 mb-1">{session?.user?.name || "Premium Member"}</h2>
+              <p className="text-[11px] text-gray-500 text-center mb-6 font-medium">{session?.user?.email}</p>
               
-              <div className="space-y-4">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500 flex items-center gap-2"><Package size={16} /> Total Orders</span>
-                  <span className="font-bold text-gray-900">{orders.length}</span>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500 flex items-center gap-2"><ShieldCheck size={16} /> Account Status</span>
-                  <span className="font-bold text-green-600 bg-green-50 px-2 py-1 rounded-sm text-xs">Verified</span>
-                </div>
+              <div className="space-y-2 border-t border-gray-100 pt-6">
+                <button className="w-full flex items-center gap-3 px-4 py-3 bg-black text-white text-[11px] uppercase tracking-widest font-bold rounded-md transition-colors shadow-sm">
+                  <Package size={16} /> My Orders
+                </button>
+                <button 
+                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  className="w-full flex items-center gap-3 px-4 py-3 text-red-500 hover:bg-red-50 text-[11px] uppercase tracking-widest font-bold rounded-md transition-colors"
+                >
+                  <LogOut size={16} /> Logout
+                </button>
               </div>
-
-              {/* অ্যাডমিন হলে ড্যাশবোর্ডে যাওয়ার বাটন দেখাবে */}
-              {(session?.user as any)?.role === "admin" && (
-                <Link href="/admin" className="mt-8 w-full bg-gray-900 hover:bg-black text-white py-2.5 rounded-sm flex items-center justify-center gap-2 text-sm font-medium transition-colors">
-                  Go to Admin Panel
-                </Link>
-              )}
             </div>
           </div>
 
-          {/* Right Side: Order History */}
-          <div className="md:w-2/3">
-            <div className="bg-white border border-gray-200 rounded-sm p-6 shadow-sm">
-              <h3 className="text-lg font-bold text-gray-900 mb-6 flex items-center gap-2 border-b border-gray-100 pb-4">
-                <Clock size={20} className="text-[#d4a843]" /> Order History
-              </h3>
+          {/* ─── MAIN CONTENT ─── */}
+          <div className="md:w-2/3 lg:w-3/4">
+            {/* Stats */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+              <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Orders</p>
+                  <h3 className="text-3xl font-black text-gray-900 font-['Syne']">{orders.length}</h3>
+                </div>
+                <div className="w-12 h-12 bg-gray-50 text-gray-600 rounded-full flex items-center justify-center border border-gray-100">
+                  <Package size={20} />
+                </div>
+              </div>
+              <div className="bg-white border border-gray-100 rounded-xl p-6 shadow-sm flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1">Total Spent</p>
+                  <h3 className="text-3xl font-black text-gray-900 font-['Syne']">৳{totalSpent}</h3>
+                </div>
+                <div className="w-12 h-12 bg-green-50 text-green-600 rounded-full flex items-center justify-center border border-green-100">
+                  <CheckCircle2 size={20} />
+                </div>
+              </div>
+            </div>
 
+            {/* Orders List */}
+            <div className="bg-white border border-gray-100 rounded-xl shadow-sm overflow-hidden">
+              <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50">
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-widest">Order History</h3>
+              </div>
+              
               {orders.length === 0 ? (
-                <div className="text-center py-10">
-                  <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
-                    <Package size={24} />
-                  </div>
-                  <p className="text-gray-500 mb-4">You haven't placed any orders yet.</p>
-                  <Link href="/products" className="text-[#d4a843] hover:underline font-medium">
+                <div className="p-12 text-center flex flex-col items-center justify-center">
+                  <Package className="w-12 h-12 text-gray-300 mb-4" strokeWidth={1} />
+                  <p className="text-sm text-gray-500 mb-6">You haven't placed any orders yet.</p>
+                  <Link href="/products" className="bg-[#d4a843] hover:bg-[#c2983b] text-white text-[11px] uppercase tracking-widest font-bold px-6 py-3 rounded-md transition-colors shadow-sm">
                     Start Shopping
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-6">
+                <div className="divide-y divide-gray-100">
                   {orders.map((order: any) => (
-                    <div key={order._id} className="border border-gray-100 rounded-sm p-5 hover:border-[#d4a843]/30 transition-colors">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 pb-4 border-b border-gray-50">
+                    <div key={order._id} className="p-6 hover:bg-gray-50/50 transition-colors">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
                         <div>
-                          <p className="text-xs text-gray-500 mb-1">Order #{order._id.slice(-6).toUpperCase()}</p>
-                          <p className="text-sm font-medium text-gray-900">{new Date(order.createdAt).toLocaleDateString()}</p>
+                          <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                            Order ID: <span className="text-black ml-1">#{order._id.substring(order._id.length - 6).toUpperCase()}</span>
+                          </p>
+                          <p className="text-xs text-gray-400 mt-1 font-medium">{formatDate(order.createdAt)}</p>
                         </div>
-                        <div className="flex flex-col sm:items-end gap-1">
-                          <p className="font-bold text-gray-900">৳{order.totalPrice}</p>
-                          <span className={`inline-block px-2 py-1 text-[10px] font-bold uppercase tracking-wider rounded-sm text-center ${
-                            order.status === 'Pending' ? 'bg-yellow-100 text-yellow-700' :
-                            order.status === 'Processing' ? 'bg-blue-100 text-blue-700' :
-                            order.status === 'Shipped' ? 'bg-purple-100 text-purple-700' :
-                            order.status === 'Cancelled' ? 'bg-red-100 text-red-700' :
-                            'bg-green-100 text-green-700'
-                          }`}>
-                            {order.status}
-                          </span>
+                        <div className="text-left sm:text-right">
+                          <p className="text-lg font-bold text-gray-900 font-['Syne']">৳{order.totalPrice}</p>
+                          <div className="flex flex-wrap items-center gap-2 mt-1.5">
+                            {order.paymentStatus === 'verified' ? (
+                              <span className="inline-flex items-center gap-1 text-[9px] uppercase font-bold text-green-600 bg-green-50 px-2 py-1 rounded border border-green-100 tracking-wider">
+                                <CheckCircle2 size={10} /> Paid
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1 text-[9px] uppercase font-bold text-orange-600 bg-orange-50 px-2 py-1 rounded border border-orange-100 tracking-wider">
+                                <Clock size={10} /> Unpaid
+                              </span>
+                            )}
+                            <span className="inline-flex items-center gap-1 text-[9px] uppercase font-bold text-gray-600 bg-gray-100 px-2 py-1 rounded border border-gray-200 tracking-wider">
+                              <Truck size={10} /> {order.status}
+                           </span>
+                          </div>
                         </div>
                       </div>
 
-                      <div className="flex gap-4 overflow-x-auto pb-2">
-                        {order.orderItems.map((item: any, idx: number) => (
-                          <div key={idx} className="flex items-center gap-3 min-w-[200px]">
-                            <img src={item.image} alt={item.name} className="w-12 h-16 object-cover bg-gray-50 rounded-sm border border-gray-100" />
+                      {/* Order Items */}
+                      <div className="flex flex-wrap gap-4 mt-5 pt-5 border-t border-gray-50">
+                        {order.orderItems?.map((item: any, index: number) => (
+                          <div key={index} className="flex items-center gap-3 bg-white border border-gray-100 p-2 rounded-md shadow-sm pr-4">
+                            <div className="w-10 h-12 bg-gray-50 rounded-sm overflow-hidden border border-gray-100 shrink-0">
+                              <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                            </div>
                             <div>
-                              <p className="text-sm font-medium text-gray-900 line-clamp-1">{item.name}</p>
-                              <p className="text-xs text-gray-500 mt-1">Qty: {item.quantity}</p>
+                              <p className="text-[11px] font-bold text-gray-900 line-clamp-1 max-w-[140px] uppercase">{item.name}</p>
+                              <p className="text-[10px] font-medium text-gray-500 mt-0.5">Qty: {item.quantity}</p>
                             </div>
                           </div>
                         ))}
@@ -142,7 +174,6 @@ export default function ProfilePage() {
               )}
             </div>
           </div>
-
         </div>
       </div>
     </div>
