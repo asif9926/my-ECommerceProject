@@ -32,15 +32,16 @@ const handleSubmit = async (e: React.FormEvent) => {
       const res = await signIn("credentials", {
         email,
         password,
-        redirect: false, // 🔥 আবার false করে দিলাম যাতে Warning না আসে
+        redirect: false, 
       });
 
       if (res?.error) {
         setError("Invalid email or password");
         setLoading(false);
-      } else {
-        // 🔥 আসল ম্যাজিক: router.push() এর বদলে window.location
-        window.location.href = "/profile";
+      } else if (res?.ok) {
+        // লগইন সাকসেস হলে প্রোফাইলে যাবে এবং সেশন রিফ্রেশ করবে
+        router.push("/profile");
+        router.refresh(); 
       }
     } catch (err) {
       setError("Something went wrong! Please try again.");
