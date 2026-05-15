@@ -23,7 +23,7 @@ function LoginContent() {
     }
   }, [prefilledEmail]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
@@ -32,21 +32,22 @@ function LoginContent() {
       const res = await signIn("credentials", {
         email,
         password,
-        redirect: false,
+        redirect: false, // 🔥 আবার false করে দিলাম যাতে Warning না আসে
       });
 
       if (res?.error) {
         setError("Invalid email or password");
+        setLoading(false);
       } else {
-        router.push("/profile");
-        router.refresh(); 
+        // 🔥 আসল ম্যাজিক: router.push() এর বদলে window.location
+        window.location.href = "/profile";
       }
     } catch (err) {
       setError("Something went wrong! Please try again.");
-    } finally {
       setLoading(false);
     }
   };
+
 
   const handleGoogleLogin = () => {
     signIn("google", { callbackUrl: "/profile" });
