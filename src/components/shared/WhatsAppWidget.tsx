@@ -10,7 +10,7 @@ export default function WhatsAppWidget() {
   const [message, setMessage] = useState("");
 
   // 🔥 এখানে আপনার WhatsApp নাম্বারটি দেবেন (Country Code সহ, কিন্তু + ছাড়া)
-  const whatsappNumber = "8801760678781"; 
+  const whatsappNumber = "01754336668";
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
