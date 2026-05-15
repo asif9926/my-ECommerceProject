@@ -179,7 +179,7 @@ export default function CheckoutPage() {
           image: item.image,
           price: item.discountPrice || item.price,
           size: item.size,
-          color: item.color
+          variant: item.variant // 🔥 FIX: color পরিবর্তন করে variant করা হলো
         })),
         paymentInfo: {
           method: paymentMethod,
@@ -336,14 +336,15 @@ export default function CheckoutPage() {
               
               <div className="space-y-4 mb-8 max-h-[300px] overflow-y-auto no-scrollbar pr-2">
                 {items.map((item: any) => (
-                  <div key={`${item._id}-${item.size}-${item.color}`} className="flex gap-4">
+                  <div key={`${item._id}-${item.size}-${item.variant}`} className="flex gap-4"> {/* 🔥 FIX: color -> variant */}
                     <div className="relative w-14 h-18 bg-white border border-gray-100 rounded-sm overflow-hidden shrink-0">
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       <span className="absolute -top-1 -right-1 w-5 h-5 bg-black text-white text-[9px] font-bold flex items-center justify-center rounded-full ring-1 ring-white">{item.quantity}</span>
                     </div>
                     <div className="flex-grow flex flex-col justify-center">
                       <h4 className="text-[10px] font-bold text-gray-900 uppercase tracking-wider line-clamp-1">{item.name}</h4>
-                      <p className="text-[9px] text-gray-500 font-medium uppercase mt-1">{item.size !== "Default" && `Size: ${item.size}`} {item.color !== "Default" && `| Color: ${item.color}`}</p>
+                      {/* 🔥 FIX: color -> variant */}
+                      <p className="text-[9px] text-gray-500 font-medium uppercase mt-1">{item.size !== "Default" && `Size: ${item.size}`} {item.variant !== "Default" && `| Variant: ${item.variant}`}</p>
                     </div>
                     <div className="flex items-center"><p className="text-[11px] font-black text-gray-900">৳{(item.discountPrice || item.price) * item.quantity}</p></div>
                   </div>

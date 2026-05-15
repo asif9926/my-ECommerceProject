@@ -11,7 +11,7 @@ const orderSchema = new mongoose.Schema({
       image: { type: String, required: true },
       price: { type: Number, required: true },
       size: { type: String },
-      color: { type: String },
+      variant: { type: String }, // 🔥 FIX: color এর বদলে variant করা হলো
     }
   ],
   

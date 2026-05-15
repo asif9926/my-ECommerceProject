@@ -97,7 +97,7 @@ export default async function OrderDetailsPage(props: { params: Promise<{ id: st
                   </div>
                   <div className="flex-grow">
                     <h4 className="font-bold text-gray-900 leading-tight">{item.name}</h4>
-                    <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-wider">Size: {item.size} | Color: {item.color}</p>
+                    <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-wider">Size: {item.size} | Variant: {item.variant}</p>
                   </div>
                   <div className="text-right">
                     <p className="text-[10px] text-gray-400">৳{item.price} x {item.quantity}</p>
