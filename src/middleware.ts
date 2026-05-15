@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/auth"; // 🔥 Auth.js v5-এর আসল নিয়ম
+import { getToken } from "next-auth/jwt";
+import type { NextRequest } from "next/server";
 
-export default auth((req) => {
-  // req.auth এর ভেতরে ইউজারের সব ডাটা (টোকেন) থাকে
-  const token = req.auth;
+export async function middleware(req: NextRequest) {
+  // 🔥 Edge-safe টোকেন চেকিং (Mongoose ছাড়া)
+  const token = await getToken({ 
+    req, 
+    secret: process.env.NEXTAUTH_SECRET,
+    secureCookie: process.env.NODE_ENV === "production", // প্রোডাকশনের কুকি যেন ধরতে পারে
+  });
+  
   const { pathname } = req.nextUrl;
 
-  // 🔥 রুল ১: লগইন করা ইউজার যেন আবার Auth পেজে (login/register) যেতে না পারে
+  // রুল ১: লগইন করা ইউজার যেন আবার Auth পেজে (login/register) যেতে না পারে
   const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/register") || pathname.startsWith("/forgot-password") || pathname.startsWith("/verify");
   
   if (token && isAuthRoute) {
@@ -23,14 +29,13 @@ export default auth((req) => {
     if (!token) {
       return NextResponse.redirect(new URL("/login", req.url));
     }
-    // token.user.role চেক করতে হবে v5 এর নিয়মে
-    if ((token.user as any)?.role !== "admin") {
+    if (token.role !== "admin") {
       return NextResponse.redirect(new URL("/", req.url)); 
     }
   }
 
   return NextResponse.next();
-});
+}
 
 export const config = {
   matcher: ["/profile/:path*", "/checkout/:path*", "/admin/:path*", "/login", "/register", "/forgot-password", "/verify"],
