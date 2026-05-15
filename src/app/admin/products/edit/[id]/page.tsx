@@ -24,6 +24,9 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
+  // 🔥 Variants এর জন্য ইনপুট স্টেট
+  const [variantInput, setVariantInput] = useState("");
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -33,6 +36,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
     subCategory: "",
     images: [] as { url: string }[],
     sizes: [] as { size: string, stock: number }[],
+    variants: [] as string[], // 🔥 Variants স্টেট যোগ করা হয়েছে
     isFeatured: false,
   });
 
@@ -40,12 +44,10 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
   useEffect(() => {
     const loadData = async () => {
       try {
-        // ক্যাটাগরি আনা
         const catRes = await fetch("/api/categories");
         const catData = await catRes.json();
         if (catData.success) setCategories(catData.categories);
 
-        // প্রোডাক্টের বর্তমান ডেটা আনা
         const prodRes = await fetch(`/api/products/${id}`);
         const prodData = await prodRes.json();
         
@@ -60,6 +62,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
             subCategory: p.subCategory || "",
             images: p.images || [],
             sizes: p.sizes || [],
+            variants: p.variants || [], // 🔥 পুরনো Variants ডেটা লোড করা হচ্ছে
             isFeatured: p.isFeatured || false,
           });
         }
@@ -173,7 +176,7 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Form Body - Add New Product এর মতোই সব UI এলিমেন্ট এখানে থাকবে */}
+        {/* Form Body */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Basic Information</h2>
@@ -202,16 +205,67 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
           {/* Sizes Section */}
           <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Inventory</h2>
+              <h2 className="text-lg font-bold text-gray-900">Inventory (Sizes & Stock)</h2>
               <button type="button" onClick={addSizeRow} className="text-xs bg-black text-white px-3 py-1.5 rounded-sm font-bold flex items-center gap-1"><Plus size={14} /> Add Size</button>
             </div>
             {formData.sizes.map((item, index) => (
               <div key={index} className="flex items-center gap-3 bg-gray-50 p-3 mb-2 rounded-sm border border-gray-200">
                 <input type="text" value={item.size} onChange={(e) => updateSize(index, "size", e.target.value)} placeholder="Size" className="flex-1 border border-gray-300 px-3 py-2 rounded-sm text-sm" />
                 <input type="number" value={item.stock} onChange={(e) => updateSize(index, "stock", Number(e.target.value))} placeholder="Stock" className="flex-1 border border-gray-300 px-3 py-2 rounded-sm text-sm" />
-                <button type="button" onClick={() => removeSizeRow(index)} className="text-red-500"><Trash2 size={18} /></button>
+                <button type="button" onClick={() => removeSizeRow(index)} className="text-red-500 hover:text-red-700"><Trash2 size={18} /></button>
               </div>
             ))}
+          </div>
+
+          {/* 🔥 Variants Section (Optional) */}
+          <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Variants (Optional)</h2>
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <input 
+                type="text" 
+                value={variantInput} 
+                onChange={(e) => setVariantInput(e.target.value)} 
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (variantInput.trim()) {
+                      setFormData({ ...formData, variants: [...formData.variants, variantInput.trim()] });
+                      setVariantInput("");
+                    }
+                  }
+                }}
+                placeholder="e.g. Full Sleeve, Cotton (Press Enter)" 
+                className="flex-1 border border-gray-300 px-4 py-2.5 rounded-sm focus:border-[#d4a843] focus:outline-none" 
+              />
+              <button 
+                type="button" 
+                onClick={() => {
+                  if (variantInput.trim()) {
+                    setFormData({ ...formData, variants: [...formData.variants, variantInput.trim()] });
+                    setVariantInput("");
+                  }
+                }} 
+                className="bg-black text-white px-4 py-2.5 rounded-sm font-bold hover:bg-gray-800 transition-colors"
+              >
+                Add
+              </button>
+            </div>
+            {/* Added Variants Badges */}
+            <div className="flex flex-wrap gap-2">
+              {formData.variants.map((v, index) => (
+                <div key={index} className="flex items-center gap-2 bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-sm text-sm font-bold text-gray-700">
+                  {v}
+                  <button type="button" onClick={() => setFormData({ ...formData, variants: formData.variants.filter((_, i) => i !== index) })} className="text-red-500 hover:text-red-700">
+                    <X size={14}/>
+                  </button>
+                </div>
+              ))}
+              {formData.variants.length === 0 && (
+                <p className="text-xs text-gray-400 italic">No variants added yet. Add variants like "Full Sleeve" etc.</p>
+              )}
+            </div>
           </div>
         </div>
 
@@ -243,8 +297,8 @@ export default function EditProductPage({ params }: { params: Promise<{ id: stri
                 </div>
               ))}
             </div>
-            <div className="relative p-4 border-2 border-dashed border-gray-300 rounded-sm text-center">
-              {isUploading ? <Loader2 className="animate-spin mx-auto text-[#d4a843]" /> : <><UploadCloud className="mx-auto text-gray-400" /><span className="text-xs">Add Image</span></>}
+            <div className="relative p-4 border-2 border-dashed border-gray-300 rounded-sm text-center hover:bg-gray-50 transition-colors">
+              {isUploading ? <Loader2 className="animate-spin mx-auto text-[#d4a843]" /> : <><UploadCloud className="mx-auto text-gray-400" /><span className="text-xs font-bold text-gray-500 mt-1 block">Add Image</span></>}
               <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
             </div>
           </div>

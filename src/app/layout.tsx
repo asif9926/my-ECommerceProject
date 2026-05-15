@@ -13,6 +13,9 @@ const syne = Syne({ subsets: ["latin"], variable: "--font-syne" });
 
 // 🔥 SEO ebong Social Media Sharing er jonno Open Graph add kora holo
 export const metadata: Metadata = {
+  // 🔥 FIX: Next.js Warning সমাধান করার জন্য এই লাইনটি যোগ করা হয়েছে
+  metadataBase: new URL("https://twille.vercel.app"),
+
   title: "Twille - Wear the Standard",
   description: "Premium clothing brand for modern lifestyle. Discover curated collections designed for the modern lifestyle in Bangladesh.",
   keywords: ["Twille", "Clothing Brand", "Premium Fashion", "Mens Wear", "Womens Wear", "Bangladesh Fashion"],
@@ -20,11 +23,11 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Twille - Wear the Standard",
     description: "Premium clothing brand for modern lifestyle.",
-    url: "https://twille.vercel.app", // Deploy er por apnar ashol domain ekhane diben
+    url: "https://twille.vercel.app", 
     siteName: "Twille",
     images: [
       {
-        url: "/icon.png", // Apni chaile ekhane ekta boro banner image er link dite paren (/banner.png)
+        url: "/icon.png", 
         width: 800,
         height: 600,
         alt: "Twille Brand Logo",
@@ -48,6 +51,7 @@ export const metadata: Metadata = {
     ],
   },
 };
+
 
 export default function RootLayout({
   children,

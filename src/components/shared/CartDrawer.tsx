@@ -81,7 +81,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
             <div className="space-y-6">
               {cart.map((item: any, index: number) => {
                 const itemPrice = item.discountPrice || item.price;
-                const uniqueKey = item.cartItemId || `${item._id}-${item.size}-${item.color}-${index}`;
+                const uniqueKey = item.cartItemId || `${item._id}-${item.size}-${item.variant}-${index}`;
                 
                 // 🔥 FIX: Valid Image Check
                 const imgSrc = (typeof item.image === "string" && item.image.trim() !== "") 
@@ -104,11 +104,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     <div className="flex flex-1 flex-col justify-between py-1">
                       <div>
                         <div className="flex justify-between items-start gap-2">
-                          <Link href={`/products/${item.slug || item._id}`} onClick={onClose} className="text-xs font-bold text-gray-900 uppercase tracking-wider hover:text-[#d4a843] transition-colors line-clamp-2">
+                          {/* 🔥 লিংক সরানো হয়েছে */}
+                          <span className="text-xs font-bold text-gray-900 uppercase tracking-wider line-clamp-2">
                             {item.name}
-                          </Link>
+                          </span>
                           <button 
-                            onClick={() => removeItem && removeItem(item._id, item.size, item.color)} 
+                            onClick={() => removeItem && removeItem(item._id, item.size, item.variant)} 
                             className="text-gray-400 hover:text-red-500 transition-colors p-1 -mr-1"
                           >
                             <Trash2 size={14} />
@@ -117,9 +118,9 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                         
                         {/* Variants */}
                         <div className="flex items-center gap-3 mt-1.5 text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                          {item.size !== "Default" && <span>Size: {item.size}</span>}
-                          {item.size !== "Default" && item.color !== "Default" && <span className="w-1 h-1 bg-gray-300 rounded-full" />}
-                          {item.color !== "Default" && <span>Color: {item.color}</span>}
+                          {item.size && item.size !== "Default" && <span>Size: {item.size}</span>}
+                          {item.size && item.size !== "Default" && item.variant && item.variant !== "Default" && <span className="w-1 h-1 bg-gray-300 rounded-full" />}
+                          {item.variant && item.variant !== "Default" && <span>Variant: {item.variant}</span>}
                         </div>
                       </div>
 
@@ -127,12 +128,12 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       <div className="flex items-end justify-between mt-4">
                         <div className="flex items-center border border-gray-200 rounded-sm h-8 w-24">
                           <button 
-                            onClick={() => updateQuantity && updateQuantity(item._id, item.size, item.color, Math.max(1, (item.quantity || 1) - 1))}
+                            onClick={() => updateQuantity && updateQuantity(item._id, item.size, item.variant, Math.max(1, (item.quantity || 1) - 1))}
                             className="px-2.5 h-full text-gray-500 hover:text-black transition-colors"
                           >−</button>
                           <span className="flex-1 text-center font-bold text-[11px] text-gray-900">{item.quantity || 1}</span>
                           <button 
-                            onClick={() => updateQuantity && updateQuantity(item._id, item.size, item.color, (item.quantity || 1) + 1)}
+                            onClick={() => updateQuantity && updateQuantity(item._id, item.size, item.variant, (item.quantity || 1) + 1)}
                             className="px-2.5 h-full text-gray-500 hover:text-black transition-colors"
                           >+</button>
                         </div>

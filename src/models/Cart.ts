@@ -5,7 +5,7 @@ const cartSchema = new mongoose.Schema({
   items: [{
     product: { type: mongoose.Schema.Types.ObjectId, ref: "Product" },
     size: String,
-    color: String,
+    variant: String, // 🔥 color এর বদলে variant করা হলো
     quantity: { type: Number, default: 1 },
     price: Number
   }],

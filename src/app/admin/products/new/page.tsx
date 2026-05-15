@@ -8,10 +8,10 @@ import { toast } from "sonner";
 
 // সাব-ক্যাটাগরির লিস্ট
 const subCategoryOptions: any = {
-  "Men": ["T-Shirt", "Shirt", "Polo", "Jeans", "Panjabi", "Hoodie", "Jacket", "Jersey"], // <-- Jersey অ্যাড করা হলো
-  "Women": ["T-Shirt", "Kurti", "Saree", "Tops", "Leggings", "3-Piece", "Gown", "Jersey"], // <-- Jersey অ্যাড করা হলো
+  "Men": ["T-Shirt", "Shirt", "Polo", "Jeans", "Panjabi", "Hoodie", "Jacket", "Jersey"],
+  "Women": ["T-Shirt", "Kurti", "Saree", "Tops", "Leggings", "3-Piece", "Gown", "Jersey"],
   "Accessories": ["Watch", "Wallet", "Bag", "Belt", "Cap", "Sunglasses"],
-  "Kids": ["T-Shirt", "Pant", "Dress", "Toys", "Jersey"] // চাইলে Kids-এও দিতে পারেন
+  "Kids": ["T-Shirt", "Pant", "Dress", "Toys", "Jersey"] 
 };
 
 export default function AddProductPage() {
@@ -22,6 +22,9 @@ export default function AddProductPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   
+  // 🔥 Variants এর জন্য ইনপুট স্টেট
+  const [variantInput, setVariantInput] = useState("");
+  
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -29,8 +32,9 @@ export default function AddProductPage() {
     discountPrice: "",
     category: "",
     subCategory: "",
-    images: [] as { url: string }[], // একাধিক ছবির জন্য Array
-    sizes: [] as { size: string, stock: number }[], // সাইজ এবং স্টকের Array
+    images: [] as { url: string }[], 
+    sizes: [] as { size: string, stock: number }[], 
+    variants: [] as string[], // 🔥 Variants যুক্ত করা হলো
     isFeatured: false,
   });
 
@@ -47,7 +51,6 @@ export default function AddProductPage() {
     setFormData({ ...formData, [name]: type === "checkbox" ? checked : value });
   };
 
-  // নির্বাচিত ক্যাটাগরির নাম বের করা (সাব-ক্যাটাগরি দেখানোর জন্য)
   const selectedCategoryName = categories.find((c: any) => c._id === formData.category)?.name || "";
   const currentSubCategories = subCategoryOptions[selectedCategoryName] || ["Other"];
 
@@ -91,7 +94,6 @@ export default function AddProductPage() {
       const uploadedImage = await res.json();
 
       if (uploadedImage.secure_url) {
-        // নতুন ছবিটিকে আগের ছবিগুলোর সাথে array-তে যুক্ত করা হচ্ছে
         setFormData({ 
           ...formData, 
           images: [...formData.images, { url: uploadedImage.secure_url }] 
@@ -161,7 +163,8 @@ export default function AddProductPage() {
         category: formData.category,
         subCategory: formData.subCategory,
         images: formData.images,
-        sizes: formData.sizes, // array of sizes with individual stock
+        sizes: formData.sizes, 
+        variants: formData.variants, // 🔥 Variants ডাটাবেসে পাঠানো হচ্ছে
         isFeatured: formData.isFeatured,
       };
 
@@ -256,7 +259,7 @@ export default function AddProductPage() {
             </div>
           </div>
 
-          {/* 🔥 Sizes & Inventory Section */}
+          {/* Sizes & Inventory Section */}
           <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-lg font-bold text-gray-900">Sizes & Inventory</h2>
@@ -309,6 +312,57 @@ export default function AddProductPage() {
             )}
           </div>
 
+          {/* 🔥 Variants Section (Optional) */}
+          <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm mt-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-gray-900">Variants (Optional)</h2>
+            </div>
+            <div className="flex items-center gap-3 mb-4">
+              <input 
+                type="text" 
+                value={variantInput} 
+                onChange={(e) => setVariantInput(e.target.value)} 
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (variantInput.trim()) {
+                      setFormData({ ...formData, variants: [...formData.variants, variantInput.trim()] });
+                      setVariantInput("");
+                    }
+                  }
+                }}
+                placeholder="e.g. Full Sleeve, Cotton (Press Enter)" 
+                className="flex-1 border border-gray-300 px-4 py-2.5 rounded-sm focus:border-[#d4a843] focus:outline-none" 
+              />
+              <button 
+                type="button" 
+                onClick={() => {
+                  if (variantInput.trim()) {
+                    setFormData({ ...formData, variants: [...formData.variants, variantInput.trim()] });
+                    setVariantInput("");
+                  }
+                }} 
+                className="bg-black text-white px-4 py-2.5 rounded-sm font-bold hover:bg-gray-800 transition-colors"
+              >
+                Add
+              </button>
+            </div>
+            {/* Added Variants Badges */}
+            <div className="flex flex-wrap gap-2">
+              {formData.variants.map((v, index) => (
+                <div key={index} className="flex items-center gap-2 bg-gray-100 border border-gray-200 px-3 py-1.5 rounded-sm text-sm font-bold text-gray-700">
+                  {v}
+                  <button type="button" onClick={() => setFormData({ ...formData, variants: formData.variants.filter((_, i) => i !== index) })} className="text-red-500 hover:text-red-700">
+                    <X size={14}/>
+                  </button>
+                </div>
+              ))}
+              {formData.variants.length === 0 && (
+                <p className="text-xs text-gray-400 italic">No variants added yet. Add variants like "Full Sleeve" etc.</p>
+              )}
+            </div>
+          </div>
+
         </div>
 
         {/* ================= RIGHT SIDE: CATEGORY & IMAGES ================= */}
@@ -330,7 +384,6 @@ export default function AddProductPage() {
                 </select>
               </div>
 
-              {/* 🔥 Dynamic Sub-Category */}
               {selectedCategoryName && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Sub Category</label>
@@ -358,7 +411,6 @@ export default function AddProductPage() {
             </div>
           </div>
 
-          {/* 🔥 Multiple Image Upload Gallery */}
           <div className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm">
             <h2 className="text-lg font-bold text-gray-900 mb-4">Product Gallery</h2>
             

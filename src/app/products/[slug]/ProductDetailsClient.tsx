@@ -31,6 +31,9 @@ export default function ProductDetailsClient({ initialProduct, relatedProducts, 
 
   const [mainImage, setMainImage] = useState(getImageUrl(product.images?.[0] || product.image));
   const [selectedSize, setSelectedSize] = useState("");
+  // 🔥 Variants State
+  const [selectedVariant, setSelectedVariant] = useState("");
+  
   const [quantity, setQuantity] = useState(1);
   const [isAdding, setIsAdding] = useState(false);
   const [openAccordion, setOpenAccordion] = useState<string | null>("description");
@@ -45,19 +48,35 @@ export default function ProductDetailsClient({ initialProduct, relatedProducts, 
   const isSaved = isInWishlist(product?._id);
 
   const handleAddToCart = () => {
+    // Size Check
     if (product.sizes?.length > 0 && !selectedSize) {
       toast.error("Please select a size first!");
       return;
     }
+    
+    // 🔥 Variant Check
+    if (product.variants && product.variants.length > 0 && !selectedVariant) {
+      toast.error("Please select a variant first!");
+      return;
+    }
+
     setIsAdding(true);
     addItem({ 
       id: product._id, name: product.name, price: product.discountPrice || product.price, 
-      image: mainImage, size: selectedSize || "Default", quantity 
+      image: mainImage, 
+      size: selectedSize || "Default", 
+      variant: selectedVariant || "Default", // 🔥 Variant পাঠানো হচ্ছে
+      quantity 
     });
+    
     setTimeout(() => {
       setIsAdding(false);
+      const variantText = selectedVariant ? ` / Variant: ${selectedVariant}` : '';
+      const sizeText = selectedSize ? `Size: ${selectedSize}` : '';
+      const combinedText = [sizeText, variantText].filter(Boolean).join(" ");
+      
       toast.success("Added to your shopping bag", {
-        description: `${quantity}x ${product.name} ${selectedSize ? `(Size: ${selectedSize})` : ''}`,
+        description: `${quantity}x ${product.name} ${combinedText ? `(${combinedText})` : ''}`,
         icon: <Check className="text-emerald-500" size={18} />
       });
     }, 500);
@@ -159,6 +178,26 @@ export default function ProductDetailsClient({ initialProduct, relatedProducts, 
                       </button>
                     );
                   })}
+                </div>
+              </motion.div>
+            )}
+
+            {/* 🔥 VARIANTS SELECTION */}
+            {product.variants && product.variants.length > 0 && (
+              <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.15 }} className="mb-10">
+                <div className="flex items-center justify-between mb-4">
+                  <span className="text-xs font-bold text-gray-900 uppercase tracking-widest">Select Variant</span>
+                </div>
+                <div className="flex flex-wrap gap-3">
+                  {product.variants.map((variantName: string, index: number) => (
+                    <button 
+                      key={`var-${index}`} 
+                      onClick={() => setSelectedVariant(variantName)} 
+                      className={`h-12 px-5 border text-[11px] font-bold uppercase tracking-widest transition-all ${selectedVariant === variantName ? "border-black bg-black text-white" : "border-gray-200 text-gray-600 hover:border-black hover:text-black"}`}
+                    >
+                      {variantName}
+                    </button>
+                  ))}
                 </div>
               </motion.div>
             )}

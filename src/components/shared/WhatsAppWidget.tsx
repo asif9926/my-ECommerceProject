@@ -3,11 +3,17 @@
 import { useState } from "react";
 import { MessageCircle, X, Send } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
+import { usePathname } from "next/navigation"; // 🔥 ১. এটি নতুন যুক্ত করা হলো
 
 export default function WhatsAppWidget() {
+  const pathname = usePathname(); // 🔥 ২. বর্তমান লিংকটি পড়ার জন্য
   const [isOpen, setIsOpen] = useState(false);
   const [message, setMessage] = useState("");
+
+  // 🔥 ৩. ম্যাজিক: যদি লিংকটি /admin দিয়ে শুরু হয়, তাহলে পুরো চ্যাট বক্স গায়েব!
+  if (pathname.startsWith("/admin")) {
+    return null;
+  }
 
   // 🔥 এখানে আপনার WhatsApp নাম্বারটি দেবেন (Country Code সহ, কিন্তু + ছাড়া)
   const whatsappNumber = "+8801754336668";

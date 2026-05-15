@@ -58,22 +58,21 @@ export default function CartPage() {
           <div className="lg:w-2/3">
             <div className="border-t border-gray-200">
               {items.map((item) => (
-                <div key={`${item._id}-${item.size}-${item.color}`} className="flex flex-col sm:flex-row items-start sm:items-center py-6 border-b border-gray-200 gap-6">
+                <div key={`${item._id}-${item.size}-${item.variant}`} className="flex flex-col sm:flex-row items-start sm:items-center py-6 border-b border-gray-200 gap-6">
                   
-                  {/* Product Image (🔥 Route theek kora hoyese: /products/... ) */}
-                  <Link href={`/products/${item.slug}`} className="w-24 h-32 shrink-0 bg-gray-100 rounded-sm overflow-hidden block">
-                    <img src={item.image} alt={item.name} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" />
-                  </Link>
+                  {/* Product Image (🔥 লিংক সরিয়ে শুধু <div> করা হয়েছে) */}
+                  <div className="w-24 h-32 shrink-0 bg-gray-100 rounded-sm overflow-hidden block">
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
 
-                  {/* Product Details */}
+                  {/* Product Details (🔥 লিংক সরানো হয়েছে) */}
                   <div className="flex-grow">
-                    {/* (🔥 Route theek kora hoyese: /products/... ) */}
-                    <Link href={`/products/${item.slug}`}>
-                      <h3 className="font-semibold text-gray-900 hover:text-[#d4a843] transition-colors text-lg mb-1">{item.name}</h3>
-                    </Link>
+                    <h3 className="font-semibold text-gray-900 text-lg mb-1">{item.name}</h3>
+                    
+                    {/* Size & Variant */}
                     <div className="text-sm text-gray-500 mb-3 space-y-1">
-                      {item.size && <p>Size: <span className="font-medium text-gray-700">{item.size}</span></p>}
-                      {item.color && <p>Color: <span className="font-medium text-gray-700">{item.color}</span></p>}
+                      {item.size && item.size !== "Default" && <p>Size: <span className="font-medium text-gray-700">{item.size}</span></p>}
+                      {item.variant && item.variant !== "Default" && <p>Variant: <span className="font-medium text-gray-700">{item.variant}</span></p>}
                     </div>
                     <div className="font-semibold text-gray-900">
                       ৳{item.discountPrice || item.price}
@@ -83,16 +82,15 @@ export default function CartPage() {
                   {/* Quantity & Delete */}
                   <div className="flex items-center gap-6 w-full sm:w-auto justify-between sm:justify-end">
                     <div className="flex items-center border border-gray-300 rounded-sm">
-                      {/* (🔥 Quantity minus bug theek kora hoyese) */}
                       <button 
-                        onClick={() => updateQuantity(item._id, Math.max(1, item.quantity - 1), item.size, item.color)}
+                        onClick={() => updateQuantity(item._id, Math.max(1, item.quantity - 1), item.size, item.variant)}
                         className="px-3 py-1.5 text-gray-500 hover:text-black transition-colors"
                       ><Minus size={14} /></button>
                       
                       <span className="w-10 text-center font-medium text-sm text-gray-900">{item.quantity}</span>
                       
                       <button 
-                        onClick={() => updateQuantity(item._id, item.quantity + 1, item.size, item.color)}
+                        onClick={() => updateQuantity(item._id, item.quantity + 1, item.size, item.variant)}
                         className="px-3 py-1.5 text-gray-500 hover:text-black transition-colors"
                       ><Plus size={14} /></button>
                     </div>
@@ -102,7 +100,7 @@ export default function CartPage() {
                     </div>
 
                     <button 
-                      onClick={() => removeItem(item._id, item.size, item.color)}
+                      onClick={() => removeItem(item._id, item.size, item.variant)}
                       className="text-gray-400 hover:text-red-500 transition-colors p-2"
                       title="Remove item"
                     >

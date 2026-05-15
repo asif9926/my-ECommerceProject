@@ -37,6 +37,9 @@ const productSchema = new mongoose.Schema(
         stock: { type: Number, required: true, default: 0 }
       }
     ],
+
+    // 🔥 NEW: Variants Array (e.g. Full Sleeve, Cotton, V-Neck)
+    variants: [{ type: String }],
     
     // Total Stock
     countInStock: { type: Number, required: true, default: 0 },

@@ -32,40 +32,37 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ slug: 
     const { slug } = await params;
     const body = await req.json();
     
+    // 🔥 এখানে variants যুক্ত করা হয়েছে
     const { 
       name, description, price, discountPrice, 
-      category, subCategory, images, sizes, isFeatured 
+      category, subCategory, images, sizes, variants, isFeatured 
     } = body;
 
-    // 🔥 FIXED: sizes আপডেট হলে টোটাল স্টক আবার হিসাব করা হচ্ছে
     let totalStock = 0;
     if (sizes && sizes.length > 0) {
       totalStock = sizes.reduce((acc: number, curr: any) => acc + Number(curr.stock), 0);
     }
 
-    // 🔥 FIXED: id এবং slug দুইভাবেই আপডেট কাজ করবে
     const query = mongoose.Types.ObjectId.isValid(slug) ? { _id: slug } : { slug: slug };
 
     const product = await Product.findOneAndUpdate(
       query,
       { 
         name, description, price, discountPrice, 
-        category, subCategory, images, sizes, 
-        countInStock: totalStock, // Updated Stock
+        category, subCategory, images, sizes, variants, // 🔥 variants সেভ হচ্ছে
+        countInStock: totalStock,
         isFeatured 
       },
       { new: true, runValidators: true }
     );
 
-    if (!product) {
-      return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
-    }
-
+    if (!product) return NextResponse.json({ success: false, message: "Product not found" }, { status: 404 });
     return NextResponse.json({ success: true, product });
   } catch (error: any) {
     return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }
+
 
 // ৩. DELETE - প্রোডাক্ট ডিলিট করা
 export async function DELETE(req: Request, { params }: { params: Promise<{ slug: string }> }) {
