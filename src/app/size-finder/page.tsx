@@ -15,38 +15,52 @@ export default function SizeFinderPage() {
   const [isCalculating, setIsCalculating] = useState(false);
   const [suggestedSize, setSuggestedSize] = useState<string | null>(null);
 
-const handleCalculate = (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!heightFt || !weight) return;
-  
-  setIsCalculating(true);
-  setSuggestedSize(null);
-
-  setTimeout(() => {
-    const w = parseFloat(weight);
-    const totalInches = (parseInt(heightFt) * 12) + (parseInt(heightIn) || 0);
+  const handleCalculate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!heightFt || !weight) return;
     
-    let size = "M";
-    
-    // 🔥 Advanced logic based on Height-to-Weight ratio
-    if (w < 55) size = "S";
-    else if (w >= 55 && w < 70) size = (totalInches > 70) ? "L" : "M"; 
-    else if (w >= 70 && w < 85) size = (totalInches > 72) ? "XL" : "L";
-    else if (w >= 85 && w < 100) size = "XL";
-    else size = "XXL";
+    setIsCalculating(true);
+    setSuggestedSize(null);
 
-    // Fit preference adjustment
-    if (fit === "loose" && size !== "XXL") {
-      const sizes = ["S", "M", "L", "XL", "XXL"];
-      size = sizes[sizes.indexOf(size) + 1];
-    } else if (fit === "slim" && size !== "S") {
-      // Keep as predicted for slim fit or reduce if needed
-    }
+    setTimeout(() => {
+      const w = parseFloat(weight);
+      const totalInches = (parseInt(heightFt) * 12) + (parseInt(heightIn) || 0);
+      
+      let size = "M";
+      
+      // 🔥 Advanced logic optimized for Bangladeshi demographics
+      if (activeGender === "men") {
+        if (w < 52) size = "S";
+        else if (w >= 52 && w < 62) size = (totalInches >= 68) ? "M" : "S"; // 5'8"
+        else if (w >= 62 && w < 72) size = (totalInches >= 70) ? "L" : "M"; // 5'10"
+        else if (w >= 72 && w < 82) size = (totalInches >= 71) ? "XL" : "L"; // 5'11"
+        else if (w >= 82 && w < 92) size = "XL";
+        else size = "XXL";
+      } else {
+        // Women
+        if (w < 45) size = "S";
+        else if (w >= 45 && w < 55) size = (totalInches >= 63) ? "M" : "S"; // 5'3"
+        else if (w >= 55 && w < 65) size = (totalInches >= 65) ? "L" : "M"; // 5'5"
+        else if (w >= 65 && w < 75) size = (totalInches >= 66) ? "XL" : "L";
+        else if (w >= 75 && w < 85) size = "XL";
+        else size = "XXL";
+      }
 
-    setSuggestedSize(size);
-    setIsCalculating(false);
-  }, 800);
-};
+      // Fit preference adjustment
+      if (fit === "loose" && size !== "XXL") {
+        const sizes = ["S", "M", "L", "XL", "XXL"];
+        const currentIndex = sizes.indexOf(size);
+        if (currentIndex !== -1 && currentIndex < sizes.length - 1) {
+          size = sizes[currentIndex + 1];
+        }
+      } else if (fit === "slim" && size !== "S") {
+        // Slim fit e ashol size tai thakbe, kintu tite hobe
+      }
+
+      setSuggestedSize(size);
+      setIsCalculating(false);
+    }, 800);
+  };
 
   return (
     <div className="bg-white min-h-screen">
@@ -244,7 +258,13 @@ const handleCalculate = (e: React.FormEvent) => {
           
           <div className="mt-8 flex items-center justify-center p-4 bg-gray-50 border border-gray-100 rounded-sm gap-3">
              <UserCheck size={16} className="text-gray-400" />
-             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Still unsure? <Link href="/contact" className="text-black hover:text-[#d4a843] border-b border-black hover:border-[#d4a843] transition-colors ml-1">Contact Support</Link></p>
+             {/* 🔥 Contact Support ar jonno WhatsApp Link Add Kora Holo */}
+             <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+               Still unsure? 
+               <a href="https://wa.me/8801754336668?text=Hello%20Twille,%20I%20need%20help%20with%20sizing" target="_blank" rel="noreferrer" className="text-black hover:text-[#d4a843] border-b border-black hover:border-[#d4a843] transition-colors ml-1">
+                 Contact Support
+               </a>
+             </p>
           </div>
 
         </div>

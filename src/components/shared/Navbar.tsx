@@ -129,11 +129,12 @@ export default function Navbar() {
         <div className="container mx-auto px-4 md:px-8">
           <div className="flex items-center justify-between h-full relative">
             
-            <button className="md:hidden hover:text-[#d4a843] transition-colors p-2 -ml-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
+            {/* 🔥 Tablet/Mobile er jonno lg:hidden use kora hoyeche jeno overlap na hoy */}
+            <button className="lg:hidden hover:text-[#d4a843] transition-colors p-2 -ml-2" onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}>
               {isMobileMenuOpen ? <X size={22} strokeWidth={1.5} /> : <Menu size={22} strokeWidth={1.5} />}
             </button>
 
-            <Link href="/" className="flex-1 md:flex-none flex justify-center md:justify-start pt-1">
+            <Link href="/" className="flex-1 lg:flex-none flex justify-center lg:justify-start pt-1">
               <Image 
                 src="/logo.png" 
                 alt="Twille Logo" 
@@ -143,7 +144,8 @@ export default function Navbar() {
               />
             </Link>
 
-            <nav className="hidden md:flex items-center justify-center gap-4 lg:gap-8 font-medium text-xs text-gray-900 tracking-[0.15em] absolute left-1/2 -translate-x-1/2 w-max">
+            {/* 🔥 Desktop Nav: Ekhon sudhu lg ba tar theke boro screen ei dekhabe */}
+            <nav className="hidden lg:flex items-center justify-center gap-4 lg:gap-8 font-medium text-xs text-gray-900 tracking-[0.15em] absolute left-1/2 -translate-x-1/2 w-max">
               <Link href="/" className="hover:text-[#d4a843] transition-colors uppercase">HOME</Link>
               
               <div className="relative group py-6 -my-6 cursor-pointer">
@@ -180,7 +182,7 @@ export default function Navbar() {
               <Link href="/products?sale=true" className="text-[#e74c3c] font-bold hover:text-[#c0392b] transition-colors uppercase">SALE</Link>
             </nav>
 
-            <div className="flex items-center gap-4 sm:gap-5 text-black flex-1 md:flex-none justify-end">
+            <div className="flex items-center gap-4 sm:gap-5 text-black flex-1 lg:flex-none justify-end">
               <button 
                 onClick={() => setIsSearchOpen(!isSearchOpen)} 
                 className="hover:text-[#d4a843] transition-colors hidden sm:flex items-center"
@@ -324,12 +326,12 @@ export default function Navbar() {
         </div>
       </header>
 
-      {/* ── MOBILE MENU ── */}
-      <div className={`md:hidden fixed top-16 left-0 w-full bg-white border-t border-gray-100 shadow-xl overflow-y-auto transition-all duration-300 z-40 ${isMobileMenuOpen ? "max-h-[calc(100vh-64px)] opacity-100 border-b" : "max-h-0 opacity-0 border-transparent"}`}>
+      {/* ── MOBILE & TABLET MENU ── */}
+      {/* 🔥 lg:hidden use kora hoyeche jate tablet eo ei menu ta show kore */}
+      <div className={`lg:hidden fixed top-16 left-0 w-full bg-white border-t border-gray-100 shadow-xl overflow-y-auto transition-all duration-300 z-40 ${isMobileMenuOpen ? "max-h-[calc(100vh-64px)] opacity-100 border-b" : "max-h-0 opacity-0 border-transparent"}`}>
         <div className="px-6 py-6 flex flex-col gap-6">
           <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-xs font-bold text-gray-900 uppercase tracking-[0.15em]">HOME</Link>
           
-          {/* 🔥 FIXED MEN SECTION FOR MOBILE */}
           <div>
             <div className="w-full flex items-center justify-between text-xs font-bold text-gray-900 uppercase tracking-[0.15em]">
               <Link href="/products?category=men" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 text-left py-1 hover:text-[#d4a843] transition-colors">
@@ -348,7 +350,6 @@ export default function Navbar() {
             </div>
           </div>
 
-          {/* 🔥 FIXED WOMEN SECTION FOR MOBILE */}
           <div>
             <div className="w-full flex items-center justify-between text-xs font-bold text-gray-900 uppercase tracking-[0.15em]">
               <Link href="/products?category=women" onClick={() => setIsMobileMenuOpen(false)} className="flex-1 text-left py-1 hover:text-[#d4a843] transition-colors">
