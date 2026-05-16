@@ -86,7 +86,7 @@ const Footer = () => {
             <div className="flex items-center gap-4">
               {/* 🔥 Facebook Link */}
               <a 
-                href="https://www.facebook.com/twilleofficial" // 👈 এখানে আপনার ফেসবুক পেজের লিংক দিন
+                href="https://www.facebook.com/twilleofficial" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-[#d4a843] hover:border-[#d4a843] transition-all duration-300 rounded-sm group"
@@ -96,7 +96,7 @@ const Footer = () => {
               
               {/* 🔥 Instagram Link */}
               <a 
-                href="https://www.instagram.com/twille.official" // 👈 এখানে আপনার ইন্সটাগ্রাম পেজের লিংক দিন
+                href="https://www.instagram.com/twille.official" 
                 target="_blank" 
                 rel="noreferrer" 
                 className="w-10 h-10 border border-white/10 flex items-center justify-center hover:bg-[#d4a843] hover:border-[#d4a843] transition-all duration-300 rounded-sm group"
@@ -170,7 +170,7 @@ const Footer = () => {
           {/* Developed by Section with Message Icon */}
           <div className="flex items-center">
             <a 
-              href="https://wa.me/8801710256453?text=Hello%20Asif,%20I%20saw%20your%20development%20work%20on%20Twille..." // 👈 Ekhane apnar nijoswo WhatsApp number din
+              href="https://wa.me/8801710256453?text=Hello%20Asif,%20I%20saw%20your%20development%20work%20on%20Twille..." 
               target="_blank" 
               rel="noreferrer"
               className="flex items-center gap-2 group transition-all"
@@ -184,12 +184,19 @@ const Footer = () => {
             </a>
           </div>
 
-          <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity duration-300">
-            <div className="bg-white px-2.5 py-1.5 rounded-sm flex items-center justify-center">
-              <img src="https://mohammadalinijhoom.com/wp-content/uploads/2024/07/bKash-Logo-300x300.png" alt="bKash" className="h-4 w-auto object-contain" />
-            </div>
-            <div className="bg-white px-2.5 py-1.5 rounded-sm flex items-center justify-center">
-              <img src="https://upload.wikimedia.org/wikipedia/bn/thumb/9/97/%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg/1920px-%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg.png" alt="Nagad" className="h-4 w-auto object-contain" />
+          {/* 🔥 Payment Gateways (3 Items with Twille Secure Payment Title) */}
+          <div className="flex flex-col items-center md:items-end gap-2">
+            <span className="text-[9px] font-bold text-gray-500 uppercase tracking-[0.2em]">Twille Secure Payment</span>
+            <div className="flex items-center gap-3 opacity-60 hover:opacity-100 transition-opacity duration-300">
+              <div className="bg-white px-2.5 py-1.5 rounded-sm flex items-center justify-center">
+                <img src="https://mohammadalinijhoom.com/wp-content/uploads/2024/07/bKash-Logo-300x300.png" alt="bKash" className="h-4 w-auto object-contain" />
+              </div>
+              <div className="bg-white px-2.5 py-1.5 rounded-sm flex items-center justify-center">
+                <img src="https://upload.wikimedia.org/wikipedia/bn/thumb/9/97/%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg/1920px-%E0%A6%A8%E0%A6%97%E0%A6%A6%E0%A7%87%E0%A6%B0_%E0%A6%B2%E0%A7%8B%E0%A6%97%E0%A7%8B.svg.png" alt="Nagad" className="h-4 w-auto object-contain" />
+              </div>
+              <div className="bg-white px-2.5 py-1.5 rounded-sm flex items-center justify-center">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Mastercard_2019_logo.svg/1920px-Mastercard_2019_logo.svg.png" alt="Mastercard" className="h-4 w-auto object-contain" />
+              </div>
             </div>
           </div>
         </div>
