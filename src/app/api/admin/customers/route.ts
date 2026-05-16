@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import Order from "@/models/Order";
-import User from "@/models/User"; // User model proyojon join korar jonno
 
 export async function GET() {
   try {
@@ -16,7 +15,7 @@ export async function GET() {
           firstName: { $last: "$shippingInfo.firstName" },
           lastName: { $last: "$shippingInfo.lastName" },
           phone: { $last: "$shippingInfo.phone" },
-          shippingEmail: { $last: "$shippingInfo.email" }, // Shipping email-ti backup hishebe rakhlam
+          shippingEmail: { $last: "$shippingInfo.email" }, // 🔥 চেকআউটে দেওয়া ইমেইল
           totalOrders: { $sum: 1 },
           totalSpent: { $sum: "$totalPrice" },
           totalPaid: { 
@@ -27,7 +26,6 @@ export async function GET() {
           lastOrder: { $last: "$createdAt" }
         }
       },
-      // 🔥 Users collection-er shathe join kora holo Account Email anar jonno
       {
         $lookup: {
           from: "users",
@@ -45,10 +43,8 @@ export async function GET() {
           totalSpent: 1,
           totalPaid: 1,
           lastOrder: 1,
-          // 🔥 Fallback Logic: Account email thakle sheta, naile shipping email
-          email: { 
-            $ifNull: [ { $arrayElemAt: ["$accountDetails.email", 0] }, "$shippingEmail" ] 
-          }
+          // 🔥 FIX: এখন থেকে সরাসরি চেকআউটে দেওয়া ইমেইলটাই অ্যাডমিন প্যানেলে দেখাবে
+          email: "$shippingEmail" 
         }
       },
       { $sort: { lastOrder: -1 } }

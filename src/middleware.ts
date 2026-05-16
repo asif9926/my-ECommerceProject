@@ -7,7 +7,7 @@ export async function middleware(req: NextRequest) {
   const token = await getToken({ 
     req, 
     secret: process.env.NEXTAUTH_SECRET,
-    secureCookie: process.env.NODE_ENV === "production", // প্রোডাকশনের কুকি যেন ধরতে পারে
+    secureCookie: process.env.NODE_ENV === "production", 
   });
   
   const { pathname } = req.nextUrl;
@@ -19,8 +19,9 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(new URL("/profile", req.url));
   }
 
-  // রুল ২: লগইন ছাড়া কেউ যেন প্রোফাইল বা চেকআউটে যেতে না পারে
-  if (!token && (pathname.startsWith("/profile") || pathname.startsWith("/checkout"))) {
+  // রুল ২: লগইন ছাড়া কেউ যেন প্রোফাইলে যেতে না পারে 
+  // (🔥 FIX: এখান থেকে checkout সরিয়ে দেওয়া হয়েছে, যাতে গেস্ট ইউজাররা এক্সেস পায়)
+  if (!token && pathname.startsWith("/profile")) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
 
@@ -38,5 +39,6 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/profile/:path*", "/checkout/:path*", "/admin/:path*", "/login", "/register", "/forgot-password", "/verify"],
+  // 🔥 FIX: matcher অ্যারে থেকেও "/checkout/:path*" মুছে দেওয়া হয়েছে
+  matcher: ["/profile/:path*", "/admin/:path*", "/login", "/register", "/forgot-password", "/verify"],
 };

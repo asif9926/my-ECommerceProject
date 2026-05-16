@@ -11,7 +11,7 @@ const orderSchema = new mongoose.Schema({
       image: { type: String, required: true },
       price: { type: Number, required: true },
       size: { type: String },
-      variant: { type: String }, // 🔥 FIX: color এর বদলে variant করা হলো
+      variant: { type: String }, 
     }
   ],
   
@@ -19,17 +19,16 @@ const orderSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     phone: { type: String, required: true },
-    email: { type: String },
+    email: { type: String, required: true }, // 🔥 FIX: অপশনাল থেকে required করা হলো
     address: { type: String, required: true },
     city: { type: String, required: true },
     postalCode: { type: String },
   },
   
-  // 🔥 UPDATED: Master Plan অনুযায়ী Payment Info
   paymentInfo: {
     method: { type: String, enum: ['instant', 'cod'], required: true },
-    mobileNumber: { type: String },   // "01XXXXXXXXX"
-    transactionId: { type: String },  // "TXN123456789"
+    mobileNumber: { type: String },   
+    transactionId: { type: String },  
     gateway: { type: String, enum: ['bKash', 'Nagad', 'Rocket'] },
     verifiedAt: { type: Date },
     verifiedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
@@ -47,7 +46,7 @@ const orderSchema = new mongoose.Schema({
   totalPrice: { type: Number, required: true },
   
   isDelivered: { type: Boolean, default: false },
-  status: { type: String, default: "Pending" }, // Pending, Processing, Shipped, Delivered
+  status: { type: String, default: "Pending" }, 
 }, { timestamps: true });
 
 export default mongoose.models.Order || mongoose.model("Order", orderSchema);

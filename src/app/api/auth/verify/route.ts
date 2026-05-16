@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
+import Order from "@/models/Order"; // 🔥 FIX: Order model ইমপোর্ট করা হলো
 
 export async function POST(req: Request) {
   try {
@@ -37,6 +38,19 @@ export async function POST(req: Request) {
     user.verifyCode = undefined; // সিকিউরিটির জন্য OTP মুছে দেওয়া
     user.verifyCodeExpiry = undefined;
     await user.save();
+
+    // 🔥 MAGIC SYNC: User ভেরিফাইড হওয়ার সাথে সাথে তার আগের সব গেস্ট অর্ডার এই অ্যাকাউন্টে শিফট হবে!
+    // 🔥 MAGIC SYNC: User verified howar sathe sathe tar aager shob guest order ei account e shift hobe!
+    await Order.updateMany(
+  { 
+    "shippingInfo.email": { $regex: new RegExp(`^${email}$`, "i") }, 
+    $or: [
+      { user: null },
+      { user: { $exists: false } }
+    ]
+  }, 
+  { $set: { user: user._id } }
+);
 
     return NextResponse.json({ message: "Email verified successfully!" }, { status: 200 });
 

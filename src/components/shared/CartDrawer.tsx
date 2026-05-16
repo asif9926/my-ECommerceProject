@@ -83,7 +83,7 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                 const itemPrice = item.discountPrice || item.price;
                 const uniqueKey = item.cartItemId || `${item._id}-${item.size}-${item.variant}-${index}`;
                 
-                // 🔥 FIX: Valid Image Check
+                // Valid Image Check
                 const imgSrc = (typeof item.image === "string" && item.image.trim() !== "") 
                   ? item.image 
                   : fallbackImage;
@@ -104,7 +104,6 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                     <div className="flex flex-1 flex-col justify-between py-1">
                       <div>
                         <div className="flex justify-between items-start gap-2">
-                          {/* 🔥 লিংক সরানো হয়েছে */}
                           <span className="text-xs font-bold text-gray-900 uppercase tracking-wider line-clamp-2">
                             {item.name}
                           </span>
@@ -127,13 +126,14 @@ export default function CartDrawer({ isOpen, onClose }: CartDrawerProps) {
                       {/* Quantity & Price */}
                       <div className="flex items-end justify-between mt-4">
                         <div className="flex items-center border border-gray-200 rounded-sm h-8 w-24">
+                          {/* 🔥 FIX: updateQuantity arguments order fixed (id, quantity, size, variant) */}
                           <button 
-                            onClick={() => updateQuantity && updateQuantity(item._id, item.size, item.variant, Math.max(1, (item.quantity || 1) - 1))}
+                            onClick={() => updateQuantity && updateQuantity(item._id, Math.max(1, (item.quantity || 1) - 1), item.size, item.variant)}
                             className="px-2.5 h-full text-gray-500 hover:text-black transition-colors"
                           >−</button>
                           <span className="flex-1 text-center font-bold text-[11px] text-gray-900">{item.quantity || 1}</span>
                           <button 
-                            onClick={() => updateQuantity && updateQuantity(item._id, item.size, item.variant, (item.quantity || 1) + 1)}
+                            onClick={() => updateQuantity && updateQuantity(item._id, (item.quantity || 1) + 1, item.size, item.variant)}
                             className="px-2.5 h-full text-gray-500 hover:text-black transition-colors"
                           >+</button>
                         </div>

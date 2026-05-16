@@ -106,7 +106,6 @@ export default function CheckoutPage() {
     fetchSettings();
   }, []);
 
-  // 🔥 Loading Spinner add kora holo jate sada screen na ashe
   if (!mounted) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
@@ -123,7 +122,6 @@ export default function CheckoutPage() {
   const isFreeShipping = shippingRules.freeShippingThreshold > 0 && subtotal >= shippingRules.freeShippingThreshold;
   const shipping = isFreeShipping ? 0 : baseShippingCharge;
                     
-  // 🔥 Math.max add kora holo jeno total kokhono negative na hoy
   const total = Math.max(0, subtotal + shipping - discountAmount);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -164,22 +162,48 @@ export default function CheckoutPage() {
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    // 🔥 1. STRICT EMAIL VALIDATION (Domain Check)
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!formData.email.match(emailRegex)) {
+      toast.error("Please enter a valid email address!");
+      setLoading(false);
+      return;
+    }
+    
+    const allowedDomains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"];
+    const emailDomain = formData.email.split("@")[1]?.toLowerCase();
+    if (!allowedDomains.includes(emailDomain)) {
+      toast.error("Please use a valid email provider (e.g., @gmail.com, @yahoo.com)!");
+      setLoading(false);
+      return;
+    }
+
+    // 🔥 2. STRICT BD PHONE NUMBER VALIDATION (11 digits, starts with 01)
+    const phoneRegex = /^(?:\+88|88)?01[3-9]\d{8}$/;
+    if (!formData.phone.match(phoneRegex)) {
+      toast.error("Please enter a valid 11-digit Bangladeshi phone number!");
+      setLoading(false);
+      return;
+    }
+
     if (paymentMethod === "instant" && (!instantData.mobileNumber || !instantData.transactionId)) {
       toast.error("Please provide Mobile Number and TrxID");
       setLoading(false);
       return;
     }
+
     try {
       const orderData = {
         shippingInfo: formData,
         orderItems: items.map((item: any) => ({
-          product: item.id || item._id, // 🔥 CRITICAL FIX: Backend er jonno Product ID pathano holo
+          product: item.id || item._id, 
           name: item.name,
           quantity: item.quantity,
           image: item.image,
           price: item.discountPrice || item.price,
           size: item.size,
-          variant: item.variant // 🔥 FIX: color পরিবর্তন করে variant করা হলো
+          variant: item.variant 
         })),
         paymentInfo: {
           method: paymentMethod,
@@ -255,8 +279,8 @@ export default function CheckoutPage() {
                   <input required type="text" name="lastName" value={formData.lastName} onChange={handleInputChange} className="w-full p-3.5 border border-gray-200 rounded-sm focus:border-black outline-none text-sm" placeholder="Last Name *" />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full p-3.5 border border-gray-200 rounded-sm focus:border-black outline-none text-sm" placeholder="Phone Number *" />
-                  <input type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full p-3.5 border border-gray-200 rounded-sm focus:border-black outline-none text-sm" placeholder="Email (Optional)" />
+                  <input required type="tel" name="phone" value={formData.phone} onChange={handleInputChange} className="w-full p-3.5 border border-gray-200 rounded-sm focus:border-black outline-none text-sm" placeholder="Phone Number (e.g. 017...) *" />
+                  <input required type="email" name="email" value={formData.email} onChange={handleInputChange} className="w-full p-3.5 border border-gray-200 rounded-sm focus:border-black outline-none text-sm" placeholder="Email Address *" />
                 </div>
                 <input required type="text" name="address" value={formData.address} onChange={handleInputChange} className="w-full p-3.5 border border-gray-200 rounded-sm focus:border-black outline-none text-sm" placeholder="Full Delivery Address *" />
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -336,14 +360,13 @@ export default function CheckoutPage() {
               
               <div className="space-y-4 mb-8 max-h-[300px] overflow-y-auto no-scrollbar pr-2">
                 {items.map((item: any) => (
-                  <div key={`${item._id}-${item.size}-${item.variant}`} className="flex gap-4"> {/* 🔥 FIX: color -> variant */}
+                  <div key={`${item._id}-${item.size}-${item.variant}`} className="flex gap-4"> 
                     <div className="relative w-14 h-18 bg-white border border-gray-100 rounded-sm overflow-hidden shrink-0">
                       <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
                       <span className="absolute -top-1 -right-1 w-5 h-5 bg-black text-white text-[9px] font-bold flex items-center justify-center rounded-full ring-1 ring-white">{item.quantity}</span>
                     </div>
                     <div className="flex-grow flex flex-col justify-center">
                       <h4 className="text-[10px] font-bold text-gray-900 uppercase tracking-wider line-clamp-1">{item.name}</h4>
-                      {/* 🔥 FIX: color -> variant */}
                       <p className="text-[9px] text-gray-500 font-medium uppercase mt-1">{item.size !== "Default" && `Size: ${item.size}`} {item.variant !== "Default" && `| Variant: ${item.variant}`}</p>
                     </div>
                     <div className="flex items-center"><p className="text-[11px] font-black text-gray-900">৳{(item.discountPrice || item.price) * item.quantity}</p></div>

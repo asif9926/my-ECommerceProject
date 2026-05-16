@@ -4,6 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 import bcrypt from "bcryptjs";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
+import Order from "@/models/Order"; // 🔥 FIX 1: Order মডেল ইমপোর্ট করা হলো
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
@@ -23,7 +24,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         const user = await User.findOne({ email: credentials?.email });
         if (!user) throw new Error("User not found");
 
-        // 🔥 FIX 1: jodi user Google diye account khule thake
+        // jodi user Google diye account khule thake
         if (!user.password) {
           throw new Error("Please login with Google.");
         }
@@ -43,19 +44,38 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   },
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-    // 🔥 FIX 2: Google diye login korle database-e user save kora
+    // Google diye login korle database-e user save kora ebong Order Sync kora
     async signIn({ user, account }) {
       if (account?.provider === "google") {
         await connectDB();
-        const existingUser = await User.findOne({ email: user.email });
+        let dbUser = await User.findOne({ email: user.email });
         
-        if (!existingUser) {
-          await User.create({
+        if (!dbUser) {
+          dbUser = await User.create({
             name: user.name,
             email: user.email,
             role: "user",
+            isVerified: true, // 🔥 FIX 2: Google একাউন্ট সরাসরি verified হবে
           });
+        } else if (!dbUser.isVerified) {
+          // যদি আগে থেকে একাউন্ট থাকে কিন্তু verified না থাকে
+          dbUser.isVerified = true;
+          await dbUser.save();
         }
+
+        // 🔥 FIX 3: MAGIC SYNC FOR GOOGLE LOGIN
+        if (dbUser && user.email) {
+  await Order.updateMany(
+    { 
+      "shippingInfo.email": { $regex: new RegExp(`^${user.email}$`, "i") }, 
+      $or: [
+        { user: null },
+        { user: { $exists: false } }
+      ]
+    }, 
+    { $set: { user: dbUser._id } }
+  );
+}
       }
       return true;
     },
