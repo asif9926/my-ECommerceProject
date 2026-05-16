@@ -31,7 +31,6 @@ export default function ProductDetailsClient({ initialProduct, relatedProducts, 
 
   const [mainImage, setMainImage] = useState(getImageUrl(product.images?.[0] || product.image));
   const [selectedSize, setSelectedSize] = useState("");
-  // 🔥 Variants State
   const [selectedVariant, setSelectedVariant] = useState("");
   
   const [quantity, setQuantity] = useState(1);
@@ -54,18 +53,33 @@ export default function ProductDetailsClient({ initialProduct, relatedProducts, 
       return;
     }
     
-    // 🔥 Variant Check
+    // Variant Check
     if (product.variants && product.variants.length > 0 && !selectedVariant) {
       toast.error("Please select a variant first!");
       return;
     }
 
+    // 🔥 SMART LOGIC: ভ্যারিয়েন্ট অনুযায়ী সঠিক ছবি বের করা
+    let cartImage = mainImage; // বাই-ডিফল্ট মেইন ছবি থাকবে (যেসব প্রোডাক্টে ভ্যারিয়েন্ট নেই তাদের জন্য)
+    
+    if (product.variants && product.variants.length > 0 && selectedVariant) {
+      // কাস্টমার কত নম্বর ভ্যারিয়েন্ট সিলেক্ট করেছে তার পজিশন/ইনডেক্স বের করা হচ্ছে
+      const variantIndex = product.variants.indexOf(selectedVariant);
+      
+      // যদি ওই পজিশনের জন্য কোনো ছবি আপলোড করা থাকে, তবে সেই ছবিটা নেবে
+      if (variantIndex !== -1 && product.images && product.images[variantIndex]) {
+        cartImage = getImageUrl(product.images[variantIndex]);
+      }
+    }
+
     setIsAdding(true);
     addItem({ 
-      id: product._id, name: product.name, price: product.discountPrice || product.price, 
-      image: mainImage, 
+      id: product._id, 
+      name: product.name, 
+      price: product.discountPrice || product.price, 
+      image: cartImage, // 🔥 এখানে ডাইনামিক ছবি পাঠানো হচ্ছে
       size: selectedSize || "Default", 
-      variant: selectedVariant || "Default", // 🔥 Variant পাঠানো হচ্ছে
+      variant: selectedVariant || "Default", 
       quantity 
     });
     
@@ -192,7 +206,13 @@ export default function ProductDetailsClient({ initialProduct, relatedProducts, 
                   {product.variants.map((variantName: string, index: number) => (
                     <button 
                       key={`var-${index}`} 
-                      onClick={() => setSelectedVariant(variantName)} 
+                      onClick={() => {
+                        setSelectedVariant(variantName);
+                        // 🔥 Magic: ভ্যারিয়েন্ট সিলেক্ট করলেই ছবিও চেঞ্জ হয়ে যাবে!
+                        if (product.images && product.images[index]) {
+                          setMainImage(getImageUrl(product.images[index]));
+                        }
+                      }} 
                       className={`h-12 px-5 border text-[11px] font-bold uppercase tracking-widest transition-all ${selectedVariant === variantName ? "border-black bg-black text-white" : "border-gray-200 text-gray-600 hover:border-black hover:text-black"}`}
                     >
                       {variantName}
